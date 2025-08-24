@@ -1,0 +1,179 @@
+[Warning: 'Output Port 1' of block 'SMDFR_HTE_model/SMDFR 4/SMDFR/SMDFR
+1/Constant3' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 1' of block 'SMDFR_HTE_model/SMDFR 4/SMDFR/SMDFR 1/MATLAB
+Function17' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 1' of block 'SMDFR_HTE_model/SMDFR 3/SMDFR/SMDFR
+1/Constant3' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 1' of block 'SMDFR_HTE_model/SMDFR 3/SMDFR/SMDFR 1/MATLAB
+Function17' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 1' of block 'SMDFR_HTE_model/SMDFR 2/SMDFR/SMDFR
+1/Constant3' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 1' of block 'SMDFR_HTE_model/SMDFR 2/SMDFR/SMDFR 1/MATLAB
+Function17' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 1' of block 'SMDFR_HTE_model/SMDFR 1/SMDFR/SMDFR
+1/Constant3' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 1' of block 'SMDFR_HTE_model/SMDFR 1/SMDFR/SMDFR 1/MATLAB
+Function17' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 4' of block 'SMDFR_HTE_model/SMDFR 1' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 5' of block 'SMDFR_HTE_model/SMDFR 1' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 3' of block 'SMDFR_HTE_model/SMDFR 2' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 4' of block 'SMDFR_HTE_model/SMDFR 2' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 5' of block 'SMDFR_HTE_model/SMDFR 2' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 8' of block 'SMDFR_HTE_model/SMDFR 2' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 10' of block 'SMDFR_HTE_model/SMDFR 2' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 12' of block 'SMDFR_HTE_model/SMDFR 2' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 13' of block 'SMDFR_HTE_model/SMDFR 2' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 14' of block 'SMDFR_HTE_model/SMDFR 2' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 3' of block 'SMDFR_HTE_model/SMDFR 3' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 4' of block 'SMDFR_HTE_model/SMDFR 3' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 5' of block 'SMDFR_HTE_model/SMDFR 3' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 8' of block 'SMDFR_HTE_model/SMDFR 3' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 10' of block 'SMDFR_HTE_model/SMDFR 3' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 12' of block 'SMDFR_HTE_model/SMDFR 3' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 13' of block 'SMDFR_HTE_model/SMDFR 3' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 14' of block 'SMDFR_HTE_model/SMDFR 3' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 3' of block 'SMDFR_HTE_model/SMDFR 4' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 4' of block 'SMDFR_HTE_model/SMDFR 4' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 5' of block 'SMDFR_HTE_model/SMDFR 4' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 8' of block 'SMDFR_HTE_model/SMDFR 4' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 10' of block 'SMDFR_HTE_model/SMDFR 4' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 12' of block 'SMDFR_HTE_model/SMDFR 4' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 13' of block 'SMDFR_HTE_model/SMDFR 4' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+[Warning: 'Output Port 14' of block 'SMDFR_HTE_model/SMDFR 4' is not connected.] 
+[> In Simulink.Simulation.internal.DesktopSimHelper
+In Simulink.Simulation.internal.DesktopSimHelper.sim
+In Simulink/SimulationInput/sim
+In Simulation_model (line 75)] 
+Elapsed time is 65.177307 seconds.

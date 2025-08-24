@@ -1,0 +1,4 @@
+[deps]
+DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+EnhancedBayesianNetworks = "886a9665-f0d4-4b74-bc12-f95153dc1848"
+UncertaintyQuantification = "7183a548-a887-11e9-15ce-a56ab60bad7a"
