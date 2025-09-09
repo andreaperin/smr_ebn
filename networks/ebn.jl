@@ -35,7 +35,6 @@ age_cpt[:AGE=>:AGE_50] = 1 / 6
 
 age_node = DiscreteNode(:AGE, age_cpt)
 
-
 data = CSV.read("networks/LOCA_probability.csv", DataFrame)
 rename!(data, :Column1 => :PGA)
 df_long1 = stack(data, Not(:PGA), variable_name=:AGE, value_name=:Π)
@@ -74,10 +73,9 @@ function extract_function(base_path::String)
 end
 extrator = Extractor(extract_function, :T_W1)
 model = ExternalModel(sourcedir, sources, extrator, solver; extras=extras, workdir=workdir, cleanup=false)
-performance = df -> 1000 .- maximum(df.T_W1)
+performance = df -> 1244 .- maximum(df.T_W1)  # [K]
 sim = MonteCarlo(5)
 model_node = DiscreteFunctionalNode(:Reactor, [model], performance, sim)
-
 
 nodes = [loca_node, age_node, pga_node, t_loca_node, model_node]
 ebn = EnhancedBayesianNetwork(nodes)
@@ -87,4 +85,4 @@ add_child!(ebn, :LOCA, :t_loca)
 add_child!(ebn, :t_loca, :Reactor)
 order!(ebn)
 
-evaluate!(ebn)
+# evaluate!(ebn)
