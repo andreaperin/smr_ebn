@@ -1,6 +1,8 @@
 using EnhancedBayesianNetworks
 using EnhancedBayesianNetworks: evaluate!
 using CSV
+using JLD2
+using Dates
 
 cpt_pga = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}(:PGA)
 cpt_pga[:PGA=>:PGA_00] = 0.05
@@ -57,16 +59,21 @@ t_loca_cpt[:LOCA=>:NO_LOCA] = Normal(1200, 0)
 t_loca_node = ContinuousNode(:t_loca, t_loca_cpt)
 
 ### MODEL node
+current_dir = pwd()
 path = "/Applications/MATLAB_R2025a.app/bin/matlab"
 source = "Simulation_model"
 args = "-batch"
 solver1 = Solver(path, source, args)
-sourcedir = "/Users/andreaperin_macos/Documents/Code/Stefano_SMR/modelSMR" #{absolute path of /m file }
+sourcedir = joinpath(current_dir, "modelSMR")
+#sourcedir = "/Users/andreaperin_macos/Documents/Code/Stefano_SMR/modelSMR" #{absolute path of /m file }
 sources = ["Failure_model_outputs.csv"]
 solver = solver1
-workdir = "/Users/andreaperin_macos/Documents/Code/Stefano_SMR/runs/temp"
+workdir = joinpath(current_dir, "runs/temp")
+
+
+#workdir = "/Users/andreaperin_macos/Documents/Code/Stefano_SMR/runs/temp"
 extras = ["Simulation_model.m", "SMDFR_Parameters.m", "SMDFR_HTE_model.slx", "msfcn_indirectps_v1.m", "msfcn_limintm_v3.m", "msfcn_schedule.m", "SMDFR_lib.slx"]
-cleanup = false
+cleanup = true
 function extract_function(base_path::String)
     data = CSV.read(joinpath(base_path, "Simulation_model_outputs.csv"), DataFrame)
     return data.T_W1
@@ -74,7 +81,7 @@ end
 extrator = Extractor(extract_function, :T_W1)
 model = ExternalModel(sourcedir, sources, extrator, solver; extras=extras, workdir=workdir, cleanup=false)
 performance = df -> 1244 .- maximum(df.T_W1)  # [K]
-sim = MonteCarlo(5)
+sim = MonteCarlo(50)
 model_node = DiscreteFunctionalNode(:Reactor, [model], performance, sim)
 
 nodes = [loca_node, age_node, pga_node, t_loca_node, model_node]
@@ -85,4 +92,9 @@ add_child!(ebn, :LOCA, :t_loca)
 add_child!(ebn, :t_loca, :Reactor)
 order!(ebn)
 
-# evaluate!(ebn)
+evaluate!(ebn)
+
+path_to_ebn = joinpath(current_dir, "networks/ebn_jld2")
+ebn_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" * string(model_node.simulation) * ".jld2"
+
+@save joinpath(path_to_ebn, ebn_name) ebn
