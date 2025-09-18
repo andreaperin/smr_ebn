@@ -4,9 +4,9 @@ using CSV
 using JLD2
 using Dates
 
-const MATLAB_BIN = "/Applications/MATLAB_R2024b.app/bin/matlab"
-
-const SIMULATIONS = 500
+const MATLAB_BIN   = "/Applications/MATLAB_R2024b.app/bin/matlab"
+const SIMULATIONS  = 50
+const nan_counter = Ref(0)  # holds the number of NaN results
 
 # --- initial time ---
 t0 = time_ns()
@@ -25,7 +25,7 @@ for a in (0, 10, 20, 30, 40, 50)
 end
 age_node = DiscreteNode(:AGE, age_cpt)
 
-# Read LOCA probabilities from CSV, stack and combine into CPT
+# Read LOCA probabilities from CSV and create the LOCA CPT
 data = CSV.read("networks/LOCA_probability.csv", DataFrame)
 rename!(data, :Column1 => :PGA)
 df_long1 = stack(data, Not(:PGA), variable_name=:AGE, value_name=:Π)
@@ -37,7 +37,7 @@ insertcols!(df_long1, 3, :LOCA => fill(:YES_LOCA, nrow(df_long1)))
 insertcols!(df_long2, 3, :LOCA => fill(:NO_LOCA, nrow(df_long2)))
 df_loca = sort(vcat(df_long1, df_long2))
 
-loca_cpt = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}(df_loca)
+loca_cpt  = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}(df_loca)
 loca_node = DiscreteNode(:LOCA, loca_cpt)
 
 # Time-to-LOCA conditional distribution
@@ -51,41 +51,38 @@ current_dir = pwd()
 
 # Directory containing Simulation_model.m and other extras
 sourcedir = joinpath(current_dir, "modelSMR")
-# If you need an absolute path instead, uncomment and modify the next line
+# absolute path example:
 # sourcedir = "/absolute/path/to/modelSMR"
 
-# Files produced by the model that must be copied back by ExternalModel
+# Files produced by the model that must be copied back
 sources = ["Failure_model_outputs.csv"]
 
 # Use a local, non-synced temp directory to avoid OneDrive/ICloud delays
 workdir = joinpath(tempdir(), "smr_ebn_runs")
 mkpath(workdir)
-
 println("workdir = ", workdir)
 
-# Solver: create a job file and then wait for Simulation_model_outputs.csv
-path = "/bin/bash"
-args = "-lc"
+# Solver: create a .job file then wait for Simulation_model_outputs.csv
+path   = "/bin/bash"
+args   = "-lc"
 source = "rm -f Simulation_model_outputs.csv && touch run.job && until [ -f Simulation_model_outputs.csv ]; do sleep 0.05; done"
 solver1 = Solver(path, source, args)
 solver  = solver1
 
-# Files needed to run the Simulink model
+# Files needed to run the Simulink model (we no longer copy SMDFR_lib.slx)
 extras = [
     "Simulation_model.m",
     "SMDFR_Parameters.m",
     "SMDFR_HTE_model.slx",
     "msfcn_indirectps_v1.m",
     "msfcn_limintm_v3.m",
-    "msfcn_schedule.m",
-    # "SMDFR_lib.slx"
+    "msfcn_schedule.m"
 ]
 cleanup = true
 
-# Persistent MATLAB server (one-time launcher)
+# Helper to detect if MATLAB is running
 function is_matlab_running()
     try
-        # pgrep -x MATLAB matches the MATLAB process on macOS and Linux
         run(pipeline(`pgrep -x MATLAB`, stdout = devnull))
         return true
     catch
@@ -93,12 +90,12 @@ function is_matlab_running()
     end
 end
 
+# Persistent MATLAB server (one-time launcher)
 function start_matlab_server!(workdir::String, matlab_path::String, sourcedir::String)
     ready_flag = joinpath(workdir, ".server_ready")
     if isfile(ready_flag) && is_matlab_running()
-        return  # MATLAB is already running
+        return
     end
-    # remove stale flag and launch server
     rm(ready_flag; force=true)
     mkpath(workdir)
     matlab_arg = "cd('" * sourcedir * "'); Simulation_model('server','" * workdir * "')"
@@ -111,17 +108,19 @@ end
 
 # Start the persistent server
 ready_flag = joinpath(workdir, ".server_ready")
-if isfile(ready_flag)
-    rm(ready_flag)
-end
-
+rm(ready_flag; force=true)
 start_matlab_server!(workdir, MATLAB_BIN, sourcedir)
 
-# Extractor: read the T_W1 column from the simulation outputs
+# Extractor: return the maximum T_W1 value as a scalar
 function extract_function(base_path::String)
     file_path = joinpath(base_path, "Simulation_model_outputs.csv")
-    data = DataFrame(CSV.File(file_path; select = ["T_W1"]))
-    return data.T_W1
+    try
+        data = DataFrame(CSV.File(file_path; select=["T_W1"]))
+        return maximum(data.T_W1)   # scalar maximum
+    catch
+        nan_counter[] += 1      # increment counter on failure
+        return NaN
+    end
 end
 extrator = Extractor(extract_function, :T_W1)
 
@@ -131,12 +130,20 @@ model = ExternalModel(
     sources,
     extrator,
     solver;
-    extras = extras,
+    extras  = extras,
     workdir = workdir,
     cleanup = false
 )
-# Performance function: compute margin from 1244 K
-performance = df -> 1244 .- maximum(df.T_W1)  # [K]
+
+# Performance function: handle empty output by returning NaN
+performance = df -> begin
+    val_vec = df.T_W1
+    if isempty(val_vec) || isnan(val_vec[1])
+        return NaN
+    else
+        return 1244 - val_vec[1]   # subtract scalar
+    end
+end
 
 # Monte Carlo sampling
 sim = MonteCarlo(SIMULATIONS)
@@ -164,3 +171,4 @@ ebn_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" *
 # Print elapsed time
 seconds = (time_ns() - t0) / 1e9
 println("Elapsed time: $(round(seconds, digits=3)) s")
+println("Number of runs that returned NaN: ", nan_counter[])
