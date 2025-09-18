@@ -5,7 +5,7 @@ using JLD2
 using Dates
 
 const MATLAB_BIN   = "/Applications/MATLAB_R2024b.app/bin/matlab"
-const SIMULATIONS  = 50
+const SIMULATIONS  = 500
 const nan_counter = Ref(0)  # holds the number of NaN results
 
 # --- initial time ---
@@ -51,8 +51,6 @@ current_dir = pwd()
 
 # Directory containing Simulation_model.m and other extras
 sourcedir = joinpath(current_dir, "modelSMR")
-# absolute path example:
-# sourcedir = "/absolute/path/to/modelSMR"
 
 # Files produced by the model that must be copied back
 sources = ["Failure_model_outputs.csv"]
@@ -69,7 +67,7 @@ source = "rm -f Simulation_model_outputs.csv && touch run.job && until [ -f Simu
 solver1 = Solver(path, source, args)
 solver  = solver1
 
-# Files needed to run the Simulink model (we no longer copy SMDFR_lib.slx)
+# Files needed to run the Simulink model
 extras = [
     "Simulation_model.m",
     "SMDFR_Parameters.m",
