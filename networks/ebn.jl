@@ -7,6 +7,7 @@ using Dates
 const MATLAB_BIN   = "/Applications/MATLAB_R2024b.app/bin/matlab"
 const SIMULATIONS  = 1000
 const nan_counter = Ref(0)  # counter for failed simulations
+const simulation_index = Ref(0)
 
 # --- initial time ---
 t0 = time_ns()
@@ -112,12 +113,22 @@ start_matlab_server!(workdir, MATLAB_BIN, sourcedir)
 # Extractor: return the maximum T_W1 value as a scalar
 function extract_function(base_path::String)
     file_path = joinpath(base_path, "Simulation_model_outputs.csv")
+    simulation_index[] += 1
     try
         data = DataFrame(CSV.File(file_path; select=["T_W1"]))
         return maximum(data.T_W1)   # scalar maximum
     catch
-        nan_counter[] += 1      # increment counter on failure
-        return NaN
+        sleep(1)
+        println("Failed loading, waiting 1 second and retrying")
+        try
+            data = DataFrame(CSV.File(file_path; select=["T_W1"]))
+            return maximum(data.T_W1)   # scalar maximum
+        catch
+            nan_counter[] += 1      # increment counter on failure
+            println("Index of failed simulation: ", simulation_index[])
+            println("Failed to read or process file: ", file_path)
+            return NaN
+        end
     end
 end
 extrator = Extractor(extract_function, :T_W1)
@@ -130,7 +141,7 @@ model = ExternalModel(
     solver;
     extras  = extras,
     workdir = workdir,
-    cleanup = true
+    cleanup = false # true to not save stuff
 )
 
 # Performance function: handle empty output by returning NaN
