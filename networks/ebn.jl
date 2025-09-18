@@ -5,8 +5,8 @@ using JLD2
 using Dates
 
 const MATLAB_BIN   = "/Applications/MATLAB_R2024b.app/bin/matlab"
-const SIMULATIONS  = 500
-const nan_counter = Ref(0)  # holds the number of NaN results
+const SIMULATIONS  = 1000
+const nan_counter = Ref(0)  # counter for failed simulations
 
 # --- initial time ---
 t0 = time_ns()
@@ -130,7 +130,7 @@ model = ExternalModel(
     solver;
     extras  = extras,
     workdir = workdir,
-    cleanup = false
+    cleanup = true
 )
 
 # Performance function: handle empty output by returning NaN
@@ -169,4 +169,4 @@ ebn_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" *
 # Print elapsed time
 seconds = (time_ns() - t0) / 1e9
 println("Elapsed time: $(round(seconds, digits=3)) s")
-println("Number of runs that returned NaN: ", nan_counter[])
+println("Number of failed simulations: ", nan_counter[])

@@ -54,6 +54,8 @@ function runSimulation(jobDir)
     evalc('SMDFR_Parameters');
 
     model       = 'SMDFR_HTE_model';
+    load_system(model);                              % <-- ensure loaded
+    set_param(model,'UnconnectedOutputMsg','none');
     All_Outputs = 0;
     ACS1_flow = 25; ACS2_flow = 25; ACS3_flow = 25; ACS4_flow = 25;
     tsim = 1200;
