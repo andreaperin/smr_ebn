@@ -9,6 +9,8 @@ const SIMULATIONS  = 1000
 const nan_counter = Ref(0)  # counter for failed simulations
 const simulation_index = Ref(0)
 
+#need to add ACS nodes
+
 # --- initial time ---
 t0 = time_ns()
 
@@ -46,6 +48,27 @@ t_loca_cpt = ContinuousConditionalProbabilityTable{PreciseContinuousInput}(:LOCA
 t_loca_cpt[:LOCA => :YES_LOCA] = LogNormal(3.3, 1)
 t_loca_cpt[:LOCA => :NO_LOCA] = Normal(1200, 0)
 t_loca_node = ContinuousNode(:t_loca, t_loca_cpt)
+
+# Read ACS1 probabilities from CSV and create the ACS1 CPT
+data = CSV.read("networks/ACS1_probability.csv", DataFrame)
+rename!(data, :Column1 => :PGA)
+df_long1 = stack(data, Not(:PGA), variable_name=:AGE, value_name=:Π)
+df_long2 = deepcopy(df_long1)
+df_long2[!, :Π] = 1 .- df_long2[!, :Π]
+df_long1[!, [:PGA, :AGE]] .= Symbol.(df_long1[!, [:PGA, :AGE]])
+df_long2[!, [:PGA, :AGE]] .= Symbol.(df_long2[!, [:PGA, :AGE]])
+insertcols!(df_long1, 3, :ACS1 => fill(:YES_ACS1, nrow(df_long1)))
+insertcols!(df_long2, 3, :ACS1 => fill(:NO_ACS1, nrow(df_long2)))
+df_acs1 = sort(vcat(df_long1, df_long2))
+
+acs1_cpt  = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}(df_acs1)
+acs1_node = DiscreteNode(:ACS1, acs1_cpt)
+
+# Time-to-ACS1 failure conditional distribution
+t_acs1_cpt = ContinuousConditionalProbabilityTable{PreciseContinuousInput}(:ACS1)
+t_acs1_cpt[:ACS1 => :YES_ACS1] = Uniform(1, 1200)
+t_acs1_cpt[:ACS1 => :NO_ACS1] = Normal(1200, 0)
+t_acs1_node = ContinuousNode(:t_acs1, t_acs1_cpt)
 
 ### MODEL node
 current_dir = pwd()
@@ -116,6 +139,9 @@ function extract_function(base_path::String)
     simulation_index[] += 1
     try
         data = DataFrame(CSV.File(file_path; select=["T_W1"]))
+        if maximum(data.T_W1) > 1243
+            println("Maximum temperature exceeds 1243 K")
+        end
         return maximum(data.T_W1)   # scalar maximum
     catch
         sleep(1)
@@ -141,7 +167,7 @@ model = ExternalModel(
     solver;
     extras  = extras,
     workdir = workdir,
-    cleanup = false # true to not save stuff
+    cleanup = true # true to not save stuff
 )
 
 # Performance function: handle empty output by returning NaN
@@ -150,7 +176,7 @@ performance = df -> begin
     if isempty(val_vec) || isnan(val_vec[1])
         return NaN
     else
-        return 1244 - val_vec[1]   # subtract scalar
+        return 1243 - val_vec[1]   # subtract scalar
     end
 end
 
@@ -159,12 +185,16 @@ sim = MonteCarlo(SIMULATIONS)
 model_node = DiscreteFunctionalNode(:Reactor, [model], performance, sim)
 
 # Build the Bayesian network
-nodes = [loca_node, age_node, pga_node, t_loca_node, model_node]
+nodes = [loca_node, age_node, pga_node, t_loca_node, model_node, t_acs1_node, acs1_node]
 ebn = EnhancedBayesianNetwork(nodes)
 add_child!(ebn, :AGE, :LOCA)
 add_child!(ebn, :PGA, :LOCA)
 add_child!(ebn, :LOCA, :t_loca)
 add_child!(ebn, :t_loca, :Reactor)
+add_child!(ebn, :AGE, :ACS1)
+add_child!(ebn, :PGA, :ACS1)
+add_child!(ebn, :ACS1, :t_acs1)
+add_child!(ebn, :t_acs1, :Reactor)
 order!(ebn)
 
 # Evaluate the network
