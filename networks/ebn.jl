@@ -5,9 +5,10 @@ using JLD2
 using Dates
 
 const MATLAB_BIN   = "/Applications/MATLAB_R2024b.app/bin/matlab"
-const SIMULATIONS  = 1000
+const SIMULATIONS  = 100
 const nan_counter = Ref(0)  # counter for failed simulations
 const simulation_index = Ref(0)
+const failed_reactor = Ref(0)  # index of failed reactor simulation
 
 #need to add ACS nodes
 
@@ -141,6 +142,7 @@ function extract_function(base_path::String)
         data = DataFrame(CSV.File(file_path; select=["T_W1"]))
         if maximum(data.T_W1) > 1243
             println("Maximum temperature exceeds 1243 K")
+            failed_reactor[] += 1
         end
         return maximum(data.T_W1)   # scalar maximum
     catch
@@ -171,14 +173,16 @@ model = ExternalModel(
 )
 
 # Performance function: handle empty output by returning NaN
-performance = df -> begin
-    val_vec = df.T_W1
-    if isempty(val_vec) || isnan(val_vec[1])
-        return NaN
-    else
-        return 1243 - val_vec[1]   # subtract scalar
-    end
-end
+#performance = df -> begin
+#    val_vec = df.T_W1
+#    if isempty(val_vec) || isnan(val_vec[1])
+#        return NaN
+#    else
+#        return 1243 - val_vec[1]   # subtract scalar
+#    end
+#end
+
+performance = df -> 1243.9 .- maximum(df.T_W1)  # [K]
 
 # Monte Carlo sampling
 sim = MonteCarlo(SIMULATIONS)
@@ -211,3 +215,4 @@ ebn_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" *
 seconds = (time_ns() - t0) / 1e9
 println("Elapsed time: $(round(seconds, digits=3)) s")
 println("Number of failed simulations: ", nan_counter[])
+println("Failed reactor simulation: ", failed_reactor[])
