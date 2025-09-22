@@ -1,24 +1,36 @@
 using EnhancedBayesianNetworks
 using EnhancedBayesianNetworks: evaluate!
 using CSV
+using DataFrames
 using JLD2
 using Dates
 
 const MATLAB_BIN   = "/Applications/MATLAB_R2024b.app/bin/matlab"
-const SIMULATIONS  = 100
+const SIMULATIONS  = 1000
 const nan_counter = Ref(0)  # counter for failed simulations
 const simulation_index = Ref(0)
 const failed_reactor = Ref(0)  # index of failed reactor simulation
 
-#need to add ACS nodes
+const cleanup_value = true  # true to not save stuff
 
 # --- initial time ---
 t0 = time_ns()
 
 # Prior on peak ground acceleration
 cpt_pga = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}(:PGA)
-for i in 0:19
-    cpt_pga[:PGA => Symbol(:PGA_, lpad(i, 2, '0'))] = 0.05
+pga_prob_df = CSV.read("networks/PGA_probability.csv", DataFrame)
+# Extract a probability vector from the DataFrame
+probs_raw = Vector(pga_prob_df[:, 1])
+# Clean and normalize
+probs = collect(skipmissing(probs_raw))
+probs = map(x -> max(0.0, Float64(x)), probs)
+sum_probs = sum(probs)
+@assert sum_probs > 0 "PGA probabilities sum to zero or contain no valid numbers in networks/PGA_probability.csv."
+probs ./= sum_probs
+@assert length(probs) == 20 "Expected 20 PGA probabilities, got $(length(probs)) from networks/PGA_probability.csv."
+for (i, p) in enumerate(probs)
+    state = Symbol(:PGA_, lpad(i - 1, 2, '0'))  # states PGA_00..PGA_19
+    cpt_pga[:PGA => state] = p
 end
 pga_node = DiscreteNode(:PGA, cpt_pga)
 
@@ -169,7 +181,7 @@ model = ExternalModel(
     solver;
     extras  = extras,
     workdir = workdir,
-    cleanup = true # true to not save stuff
+    cleanup = cleanup_value # true to not save stuff
 )
 
 # Performance function: handle empty output by returning NaN
