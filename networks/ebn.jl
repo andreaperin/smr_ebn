@@ -6,7 +6,7 @@ using JLD2
 using Dates
 
 const MATLAB_BIN   = "/Applications/MATLAB_R2024b.app/bin/matlab"
-const SIMULATIONS  = 1000 # number of Monte Carlo simulations
+const SIMULATIONS  = 100 # number of Monte Carlo simulations
 const nan_counter = Ref(0)  # counter for failed simulations
 const simulation_index = Ref(0)
 const failed_reactor = Ref(0)  # index of failed reactor simulation
@@ -146,29 +146,25 @@ ready_flag = joinpath(workdir, ".server_ready")
 rm(ready_flag; force=true)
 start_matlab_server!(workdir, MATLAB_BIN, sourcedir)
 
-# Extractor: return the maximum T_W1 value as a scalar
+# Extractor
 function extract_function(base_path::String)
-    file_path = joinpath(base_path, "Simulation_model_outputs.csv")
     simulation_index[] += 1
     try
-        data = DataFrame(CSV.File(file_path; select=["T_W1"]))
+        data = CSV.read(joinpath(base_path, "Simulation_model_outputs.csv"), DataFrame)
         if maximum(data.T_W1) > 1243.9
             println("Maximum temperature exceeds 1244 K")
             failed_reactor[] += 1
         end
-        return data.T_W1 
+        return data.T_W1
     catch
         sleep(1)
         println("Failed loading, waiting 1 second and retrying")
-        try
-            data = DataFrame(CSV.File(file_path; select=["T_W1"]))
-            return data.T_W1 
-        catch
-            nan_counter[] += 1      # increment counter on failure
-            println("Index of failed simulation: ", simulation_index[])
-            println("Failed to read or process file: ", file_path)
-            return NaN
+        data = CSV.read(joinpath(base_path, "Simulation_model_outputs.csv"), DataFrame)
+        if maximum(data.T_W1) > 1243.9
+            println("Maximum temperature exceeds 1244 K")
+            failed_reactor[] += 1
         end
+        return data.T_W1
     end
 end
 extractor = Extractor(extract_function, :T_W1)
@@ -181,10 +177,10 @@ model = ExternalModel(
     solver;
     extras  = extras,
     workdir = workdir,
-    cleanup = cleanup_value # true to not save stuff
+    cleanup = cleanup_value
 )
 
-performance = df -> 1243.9 .- maximum(df.T_W1)  # [K]
+performance = df -> 1243.9 .- maximum.(df.T_W1)
 
 # Monte Carlo sampling
 sim = MonteCarlo(SIMULATIONS)
@@ -217,4 +213,4 @@ ebn_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" *
 seconds = (time_ns() - t0) / 1e9
 println("Elapsed time: $(round(seconds, digits=3)) s")
 println("Number of failed simulations: ", nan_counter[])
-println("Failed reactor simulation: ", failed_reactor[])
+println("Failed reactor simulations: ", failed_reactor[])
