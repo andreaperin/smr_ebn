@@ -6,7 +6,7 @@ using JLD2
 using Dates
 
 const MATLAB_BIN   = "/Applications/MATLAB_R2024b.app/bin/matlab"
-const SIMULATIONS  = 1000
+const SIMULATIONS  = 1000 # number of Monte Carlo simulations
 const nan_counter = Ref(0)  # counter for failed simulations
 const simulation_index = Ref(0)
 const failed_reactor = Ref(0)  # index of failed reactor simulation
@@ -152,17 +152,17 @@ function extract_function(base_path::String)
     simulation_index[] += 1
     try
         data = DataFrame(CSV.File(file_path; select=["T_W1"]))
-        if maximum(data.T_W1) > 1243
-            println("Maximum temperature exceeds 1243 K")
+        if maximum(data.T_W1) > 1243.9
+            println("Maximum temperature exceeds 1244 K")
             failed_reactor[] += 1
         end
-        return maximum(data.T_W1)   # scalar maximum
+        return data.T_W1 
     catch
         sleep(1)
         println("Failed loading, waiting 1 second and retrying")
         try
             data = DataFrame(CSV.File(file_path; select=["T_W1"]))
-            return maximum(data.T_W1)   # scalar maximum
+            return data.T_W1 
         catch
             nan_counter[] += 1      # increment counter on failure
             println("Index of failed simulation: ", simulation_index[])
@@ -171,28 +171,18 @@ function extract_function(base_path::String)
         end
     end
 end
-extrator = Extractor(extract_function, :T_W1)
+extractor = Extractor(extract_function, :T_W1)
 
 # Define the external model
 model = ExternalModel(
     sourcedir,
     sources,
-    extrator,
+    extractor,
     solver;
     extras  = extras,
     workdir = workdir,
     cleanup = cleanup_value # true to not save stuff
 )
-
-# Performance function: handle empty output by returning NaN
-#performance = df -> begin
-#    val_vec = df.T_W1
-#    if isempty(val_vec) || isnan(val_vec[1])
-#        return NaN
-#    else
-#        return 1243 - val_vec[1]   # subtract scalar
-#    end
-#end
 
 performance = df -> 1243.9 .- maximum(df.T_W1)  # [K]
 
