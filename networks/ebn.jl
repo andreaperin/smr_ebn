@@ -6,7 +6,7 @@ using JLD2
 using Dates
 
 const MATLAB_BIN   = "/Applications/MATLAB_R2024b.app/bin/matlab"
-const SIMULATIONS  = 100 # number of Monte Carlo simulations
+const SIMULATIONS  = 150 # number of Monte Carlo simulations
 const nan_counter = Ref(0)  # counter for failed simulations
 const simulation_index = Ref(0)
 const failed_reactor = Ref(0)  # index of failed reactor simulation
