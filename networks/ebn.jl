@@ -26,7 +26,7 @@ mkpath(workdir)
 ``` PGA node peak ground acceleration
 ```
 cpt_pga = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}(:PGA)
-pga_probs = CSV.read("networks/PGA_probability.csv", DataFrame)[:, 1]
+pga_probs = CSV.read("networks/csv/PGA_probability.csv", DataFrame)[:, 1]
 pga_states = ["PGA_$(lpad(i, 2, '0'))" for i in 0:length(pga_probs)]
 map((p, st) -> cpt_pga[:PGA=>Symbol(st)] = p, pga_probs, pga_states)
 pga_node = DiscreteNode(:PGA, cpt_pga)
@@ -42,7 +42,7 @@ age_node = DiscreteNode(:AGE, cpt_age)
 
 ``` LOCA node
 ```
-data = CSV.read("networks/LOCA_probability.csv", DataFrame)
+data = CSV.read("networks/csv/LOCA_probability.csv", DataFrame)
 rename!(data, :Column1 => :PGA)
 rename!(data, :AGE_0 => :AGE_00)
 df_long1 = stack(data, Not(:PGA), variable_name = :AGE, value_name = :Π)
@@ -67,7 +67,7 @@ t_loca_node = ContinuousNode(:t_loca, t_loca_cpt)
 
 ``` ACS1 node
 ```
-data = CSV.read("networks/ACS1_probability.csv", DataFrame)
+data = CSV.read("networks/csv/ACS1_probability.csv", DataFrame)
 rename!(data, :Column1 => :PGA)
 rename!(data, :AGE_0 => :AGE_00)
 df_long1 = stack(data, Not(:PGA), variable_name = :AGE, value_name = :Π)
