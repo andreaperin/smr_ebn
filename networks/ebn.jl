@@ -1,61 +1,73 @@
 using EnhancedBayesianNetworks
 using EnhancedBayesianNetworks: evaluate!
 using CSV
+using DataFrames
 using JLD2
 using Dates
 
-if Sys.isapple()
-	const MATLAB_BIN = "/Applications/MATLAB_R2024b.app/bin/matlab"
-elseif Sys.islinux()
+if Sys.islinux()
 	const MATLAB_BIN = expanduser("~/Matlab/R2025b/bin/matlab")
+elseif Sys.isapple()
+	const MATLAB_BIN = "/Applications/MATLAB_R2024b.app/bin/matlab"
 end
 
-const SIMULATIONS = 20
-const cleanup_value = true
+const SIMULATIONS = 150 # number of Monte Carlo simulations
+const cleanup_value = true  # true to not save stuff
 
-```PGA NODE
+const current_dir = pwd()
+const sourcedir = joinpath(current_dir, "modelSMR") # Directory containing Simulation_model.m and other extras
+const sources = ["Failure_model_outputs.csv"] # Files produced by the model that must be copied back
+const workdir = joinpath(tempdir(), "smr_ebn_runs") # Simulations directory
+mkpath(workdir)
+
+
+
+
+``` PGA node peak ground acceleration
 ```
 cpt_pga = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}(:PGA)
-pga_probs = CSV.read("networks/csvs/PGA_probability.csv", DataFrame)[:, 1]
-pga_states = ["PGA_$(lpad(i, 2, '0'))" for i in 0:(length(pga_probs))]
+pga_probs = CSV.read("networks/csv/PGA_probability.csv", DataFrame)[:, 1]
+pga_states = ["PGA_$(lpad(i, 2, '0'))" for i in 0:length(pga_probs)]
 map((p, st) -> cpt_pga[:PGA=>Symbol(st)] = p, pga_probs, pga_states)
 pga_node = DiscreteNode(:PGA, cpt_pga)
 
-```AGE NODE
-```
-age_cpt = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}(:AGE)
-age_states = ["AGE_$(i)0" for i in 0:5]
-map(st->age_cpt[:AGE=>Symbol(st)] = 1/length(age_states), age_states)
-age_node = DiscreteNode(:AGE, age_cpt)
 
-```LOCA NODE
+``` AGE node
 ```
-data = CSV.read("networks/csvs/LOCA_probability.csv", DataFrame)
+cpt_age = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}(:AGE)
+age_states = ["AGE_$(i)0" for i in 0:5]
+map(st -> cpt_age[:AGE=>Symbol(st)] = 1/length(age_states), age_states)
+age_node = DiscreteNode(:AGE, cpt_age)
+
+
+``` LOCA node
+```
+data = CSV.read("networks/csv/LOCA_probability.csv", DataFrame)
 rename!(data, :Column1 => :PGA)
 rename!(data, :AGE_0 => :AGE_00)
 df_long1 = stack(data, Not(:PGA), variable_name = :AGE, value_name = :Π)
 df_long2 = deepcopy(df_long1)
 df_long2[!, :Π] = 1 .- df_long2[!, :Π]
-df_long1[!, [:PGA, :AGE]] = Symbol.(df_long1[!, [:PGA, :AGE]])
-df_long2[!, [:PGA, :AGE]] = Symbol.(df_long1[!, [:PGA, :AGE]])
-newcol1 = fill(:YES_LOCA, nrow(df_long1))
-insertcols!(df_long1, 3, :LOCA => newcol1)
-newcol2 = fill(:NO_LOCA, nrow(df_long1))
-insertcols!(df_long2, 3, :LOCA => newcol2)
-df_loca = sort(vcat(df_long1, df_long2))
-loca_cpt = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}(df_loca)
+df_long1[!, [:PGA, :AGE]] .= Symbol.(df_long1[!, [:PGA, :AGE]])
+df_long2[!, [:PGA, :AGE]] .= Symbol.(df_long2[!, [:PGA, :AGE]])
+insertcols!(df_long1, 3, :LOCA => fill(:YES_LOCA, nrow(df_long1)))
+insertcols!(df_long2, 3, :LOCA => fill(:NO_LOCA, nrow(df_long2)))
+df_loca   = sort(vcat(df_long1, df_long2))
+loca_cpt  = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}(df_loca)
 loca_node = DiscreteNode(:LOCA, loca_cpt)
 
-```LOCA-TIME NODE
+
+``` LOCA-TIME node
 ```
 t_loca_cpt = ContinuousConditionalProbabilityTable{PreciseContinuousInput}(:LOCA)
 t_loca_cpt[:LOCA=>:YES_LOCA] = LogNormal(3.3, 1)
 t_loca_cpt[:LOCA=>:NO_LOCA] = Normal(1200, 0)
 t_loca_node = ContinuousNode(:t_loca, t_loca_cpt)
 
-```ACS1 NODE
+
+``` ACS1 node
 ```
-data = CSV.read("networks/csvs/ACS1_probability.csv", DataFrame)
+data = CSV.read("networks/csv/ACS1_probability.csv", DataFrame)
 rename!(data, :Column1 => :PGA)
 rename!(data, :AGE_0 => :AGE_00)
 df_long1 = stack(data, Not(:PGA), variable_name = :AGE, value_name = :Π)
@@ -70,22 +82,34 @@ acs1_cpt  = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}(df_a
 acs1_node = DiscreteNode(:ACS1, acs1_cpt)
 
 
-```ACS1-TIME NODE
+``` ACS1-TIME node
 ```
 t_acs1_cpt = ContinuousConditionalProbabilityTable{PreciseContinuousInput}(:ACS1)
 t_acs1_cpt[:ACS1=>:YES_ACS1] = Uniform(1, 1200)
 t_acs1_cpt[:ACS1=>:NO_ACS1] = Normal(1200, 0)
 t_acs1_node = ContinuousNode(:t_acs1, t_acs1_cpt)
 
-```MODEL NODE
+
+
+``` MODEL node
 ```
-##############################################
-######		Matlab Server Settings		######
-##############################################
-path   = "/bin/bash"
-args   = "-lc"
-source = "rm -f Simulation_model_outputs.csv && touch run.job && until [ -f Simulation_model_outputs.csv ]; do sleep 0.05; done"
-solver = Solver(path, source, args)
+# Solver: create a .job file then wait for Simulation_model_outputs.csv
+path    = "/bin/bash"
+args    = "-lc"
+source  = "rm -f Simulation_model_outputs.csv && touch run.job && until [ -f Simulation_model_outputs.csv ]; do sleep 0.05; done"
+solver1 = Solver(path, source, args)
+solver  = solver1
+
+# Files needed to run the Simulink model
+extras = [
+	"Simulation_model.m",
+	"SMDFR_Parameters.m",
+	"SMDFR_HTE_model.slx",
+	"msfcn_indirectps_v1.m",
+	"msfcn_limintm_v3.m",
+	"msfcn_schedule.m",
+]
+
 # Helper to detect if MATLAB is running
 function is_matlab_running()
 	try
@@ -95,6 +119,7 @@ function is_matlab_running()
 		return false
 	end
 end
+
 # Persistent MATLAB server (one-time launcher)
 function start_matlab_server!(workdir::String, matlab_path::String, sourcedir::String)
 	ready_flag = joinpath(workdir, ".server_ready")
@@ -111,25 +136,13 @@ function start_matlab_server!(workdir::String, matlab_path::String, sourcedir::S
 	end
 end
 
-##############################################
-######		 	Model Settings			######
-##############################################
-current_dir = pwd()
-sourcedir = joinpath(current_dir, "modelSMR")  # Directory with the model and the extras
-sources = ["Failure_model_outputs.csv"] # Files produced by the model and must be copied back
-workdir = joinpath(tempdir(), "smr_ebn_runs") # Simulations directory
-mkpath(workdir)
-extras = [
-	"Simulation_model.m",
-	"SMDFR_Parameters.m",
-	"SMDFR_HTE_model.slx",
-	"msfcn_indirectps_v1.m",
-	"msfcn_limintm_v3.m",
-	"msfcn_schedule.m",
-] # Files needed to run the Simulink model
+# Start the persistent server
+ready_flag = joinpath(workdir, ".server_ready")
+rm(ready_flag; force = true)
+start_matlab_server!(workdir, MATLAB_BIN, sourcedir)
 
+# Extractor
 function extract_function(base_path::String)
-	simulation_index[] += 1
 	try
 		data = CSV.read(joinpath(base_path, "Simulation_model_outputs.csv"), DataFrame)
 		return data.T_W1
@@ -140,6 +153,8 @@ function extract_function(base_path::String)
 	end
 end
 extractor = Extractor(extract_function, :T_W1)
+
+# Define the external model
 model = ExternalModel(
 	sourcedir,
 	sources,
@@ -150,15 +165,13 @@ model = ExternalModel(
 	cleanup = cleanup_value,
 )
 
-##############################################
-######		Simulations Settings		######
-##############################################
 performance = df -> 1243.9 .- maximum.(df.T_W1)
 sim = MonteCarlo(SIMULATIONS)
-
 model_node = DiscreteFunctionalNode(:Reactor, [model], performance, sim)
 
-# Build the Bayesian network
+
+``` Enhanced Bayesian Networks
+```
 nodes = [loca_node, age_node, pga_node, t_loca_node, model_node, t_acs1_node, acs1_node]
 ebn = EnhancedBayesianNetwork(nodes)
 add_child!(ebn, :AGE, :LOCA)
@@ -171,15 +184,18 @@ add_child!(ebn, :ACS1, :t_acs1)
 add_child!(ebn, :t_acs1, :Reactor)
 order!(ebn)
 
-# Evaluate the network# Start the persistent server
-ready_flag = joinpath(workdir, ".server_ready")
-rm(ready_flag; force = true)
-start_matlab_server!(workdir, MATLAB_BIN, sourcedir)
-# evaluate!(ebn)
+# --- initial time ---
+t0 = time_ns()
 
-##############################################
-######			Store Results			######
-##############################################
-# path_to_ebn = joinpath(current_dir, "networks/ebn_jld2")
-# ebn_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" * string(model_node.simulation) * ".jld2"
-# @save joinpath(path_to_ebn, ebn_name) ebn
+evaluate!(ebn)
+
+# Save the network to disk
+path_to_ebn = joinpath(current_dir, "networks", "ebn_jld2")
+mkpath(path_to_ebn)
+ebn_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" *
+		   string(model_node.simulation) * ".jld2"
+@save joinpath(path_to_ebn, ebn_name) ebn
+
+# Print elapsed time
+seconds = (time_ns() - t0) / 1e9
+println("Elapsed time: $(round(seconds, digits=3)) s")
