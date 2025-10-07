@@ -5,7 +5,7 @@ using DataFrames
 using JLD2
 using Dates
 
-const SIMULATIONS = 150 # number of Monte Carlo simulations
+const SIMULATIONS = 2 # number of Monte Carlo simulations
 
 
 ``` PGA node peak ground acceleration
@@ -78,10 +78,16 @@ t_acs1_node = ContinuousNode(:t_acs1, t_acs1_cpt)
 
 ``` MODEL node
 ```
-include("../model_TW1.jl")
-performance = df -> 1243.9 .- maximum.(df.T_W1)
+include("model_T.jl")
+model_temp = Model(df -> model_temperatures.(df.t_loca), :max_Ts)
+
+function performance_function(threshold::Real, df::DataFrame)
+    maxval = maximum(Matrix(df))
+    return threshold - maxval
+end
+performance = df -> performance_function.(df.max_Ts)
 sim = MonteCarlo(SIMULATIONS)
-model_node = DiscreteFunctionalNode(:Reactor, [model], performance, sim)
+model_node = DiscreteFunctionalNode(:Reactor, [model_temp], performance, sim)
 
 
 ``` Enhanced Bayesian Networks
