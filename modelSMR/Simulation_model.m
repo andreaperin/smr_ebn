@@ -1,4 +1,4 @@
-function [T_W1, T_W2, T_W3, T_W4] = Simulation_model(LOCA1_time_no_csv)
+function [T_W1, T_W2, T_W3, T_W4] = Simulation_model(LOCA1_time_no_csv,ACS1_time_no_csv)
 
 tic
 
@@ -18,7 +18,7 @@ end
 
 % Override LOCA1_time with user input
 assignin('base', 'LOCA1_time', LOCA1_time_no_csv);
-
+assignin('base', 'ACS_1', ACS1_time_no_csv);
 % Load parameter script
 evalc('SMDFR_Parameters');
 
@@ -38,9 +38,9 @@ in = in.setModelParameter('StartTime', '1', 'StopTime', num2str(tsim));
 
 in = in.setVariable('All_Outputs', All_Outputs);
 in = in.setVariable('LOCA1_time', LOCA1_time_no_csv);
-
+in = in.setVariable('ACS_1', ACS1_time_no_csv);
 % Set remaining variables from base workspace
-varlist = {'LOCA2_time','LOCA3_time','LOCA4_time','ACS_1','ACS_2','ACS_3','ACS_4', ...
+varlist = {'LOCA2_time','LOCA3_time','LOCA4_time','ACS_2','ACS_3','ACS_4', ...
            'EDG_1','EDG_2','Power','PDP11','PDP12','PDP21','PDP22','PDP31','PDP32', ...
            'PDP41','PDP42','MSLB1','MSLB2','MSLB3','MSLB4','thermal_failure','LHS', ...
            'thermal_failure_time','PGA'};

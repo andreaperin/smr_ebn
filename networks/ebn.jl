@@ -1,3 +1,8 @@
+using Distributed
+numProcs = 10
+addprocs(numProcs)
+
+@everywhere begin
 using EnhancedBayesianNetworks
 using EnhancedBayesianNetworks: evaluate!
 using CSV
@@ -5,7 +10,10 @@ using DataFrames
 using JLD2
 using Dates
 
-const SIMULATIONS = 2 # number of Monte Carlo simulations
+const SIMULATIONS = 10 # number of Monte Carlo simulations
+const threshold = 1243.9
+
+const current_dir = pwd()
 
 
 ``` PGA node peak ground acceleration
@@ -79,13 +87,24 @@ t_acs1_node = ContinuousNode(:t_acs1, t_acs1_cpt)
 ``` MODEL node
 ```
 include("model_T.jl")
-model_temp = Model(df -> model_temperatures.(df.t_loca), :max_Ts)
+
+# --- Parallel wrapper for the plant model (t_loca and t_acs1) ---
+function _run_model_temperatures(t_loca::Real, t_acs1::Real)
+    return model_temperatures(t_loca, t_acs1)
+end
+
+# Map over aligned vectors with pmap (each pair (t_loca, t_acs1) is one simulation)
+parallel_model_temperatures(ts_loca::AbstractVector, ts_acs1::AbstractVector) =
+    pmap((tl, ta) -> _run_model_temperatures(tl, ta), ts_loca, ts_acs1)
+
+model_temp = Model(df -> parallel_model_temperatures(df.t_loca, df.t_acs1), :max_Ts)
+
 
 function performance_function(threshold::Real, df::DataFrame)
     maxval = maximum(Matrix(df))
     return threshold - maxval
 end
-performance = df -> performance_function.(df.max_Ts)
+performance = df -> performance_function.(threshold,df.max_Ts)
 sim = MonteCarlo(SIMULATIONS)
 model_node = DiscreteFunctionalNode(:Reactor, [model_temp], performance, sim)
 
@@ -106,6 +125,8 @@ order!(ebn)
 
 # --- initial time ---
 t0 = time_ns()
+
+end
 
 evaluate!(ebn)
 
