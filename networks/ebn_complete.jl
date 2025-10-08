@@ -1,5 +1,5 @@
 using Distributed
-numProcs = 10
+numProcs = 5
 addprocs(numProcs)
 
 @everywhere begin
@@ -10,7 +10,7 @@ addprocs(numProcs)
     using JLD2
     using Dates
 
-    const SIMULATIONS = 10 # number of Monte Carlo simulations
+    const SIMULATIONS = 5 # number of Monte Carlo simulations
     const threshold = 1243.9
 
     const current_dir = pwd()
@@ -367,3 +367,5 @@ ebn_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" *
 # Print elapsed time
 seconds = (time_ns() - t0) / 1e9
 println("Elapsed time: $(round(seconds, digits=3)) s")
+
+rmprocs(workers())
