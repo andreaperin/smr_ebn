@@ -1,22 +1,27 @@
-#ENV["MATLAB_HOME"] = expanduser("~/Matlab/R2025b")
-ENV["MATLAB_HOME"] = "/Applications/MATLAB_R2024b.app"
+if Sys.islinux()
+    ENV["MATLAB_HOME"] = "/usr/local/MATLAB/R2023a"
+elseif Sys.isapple()
+    ENV["MATLAB_HOME"] = "/Applications/MATLAB_R2024b.app"
+else
+    error("OS not set up")
+end
 
 using MATLAB
+
 using DataFrames
 
 function model_temperatures(LOCA1_time::Float64, ACS1_time::Float64)
     # Add MATLAB function folder to path
     LOCA1_time = Float64(LOCA1_time)
     ACS1_time = Float64(ACS1_time)
-    
+
     mat"close all; clear all;"
-   # mat"""
-    #addpath('/home/perin/Documents/projects/work/code/smr_ebn/modelSMR')
-    #"""
 
     mat"""
-    addpath('/Users/stefanomarchetti/Library/CloudStorage/OneDrive-PolitecnicodiMilano/Python/Cursor/smr_ebn/modelSMR')
+    addpath('./modelSMR')
     """
+    # Suppress all MATLAB warnings
+    mat"warning('off', 'all');"
 
     # Call MATLAB function with multiple outputs
     T_W1, T_W2, T_W3, T_W4 = mxcall(:Simulation_model, 4, LOCA1_time, ACS1_time)
@@ -29,16 +34,6 @@ function model_temperatures(LOCA1_time::Float64, ACS1_time::Float64)
     return df
 end
 
+# a = model_temperatures(20.0, 20.0)
 
-# a = model_temperatures(20.0)
-
-# TW1, TW2, TW3, TW4 = model_temperatures(20.0)
-
-# ## TEST
-
-# using UncertaintyQuantification
-# loca = RandomVariable(Normal(), :LOCA)
-# model = Model(df -> model_temperatures.(df.LOCA), :T_W1)
-
-# samples = sample([loca], 20)
-# evaluate!(model, samples)
+# @show(a)
