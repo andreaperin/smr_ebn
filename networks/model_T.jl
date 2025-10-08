@@ -22,6 +22,8 @@ function model_temperatures(LOCA1_time::Float64, ACS1_time::Float64)
     """
     # Suppress all MATLAB warnings
     mat"warning('off', 'all');"
+    # Disable Simulink autosave recovery (prevents the message)
+    mat"set_param(0, 'RecoverAutosave', 'off');"
 
     # Call MATLAB function with multiple outputs
     T_W1, T_W2, T_W3, T_W4 = mxcall(:Simulation_model, 4, LOCA1_time, ACS1_time)

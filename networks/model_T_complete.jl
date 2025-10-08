@@ -41,6 +41,8 @@ function model_temperatures(
     mat"close all; clear all;"
     # Suppress all MATLAB warnings
     mat"warning('off', 'all');"
+    # Disable Simulink autosave recovery (prevents the message)
+    mat"set_param(0, 'RecoverAutosave', 'off');"
 
     mat"""
     addpath('./modelSMR')
