@@ -1,9 +1,19 @@
 if Sys.islinux()
-    ENV["MATLAB_HOME"] = "/usr/local/MATLAB/R2023a"
+    # Read /etc/os-release
+    os_release = read("/etc/os-release", String)
+    if occursin("Solus", os_release)
+        ENV["MATLAB_HOME"] = "/usr/local/MATLAB/R2025b"
+    elseif occursin("Ubuntu", os_release)
+        ENV["MATLAB_HOME"] = "/opt/MATLAB/R2024b"
+    else
+        # Fallback: extract the NAME field
+        m = match(r"^NAME=\"?([^\"]+)\"?", os_release, RegexOpts("m"))
+        return m !== nothing ? m.captures[1] : "Unknown Linux"
+    end
 elseif Sys.isapple()
-    ENV["MATLAB_HOME"] = "/Applications/MATLAB_R2024b.app"
+    ENV["MATLAB_HOME"] = "Applications/MATLAB_R2024b.app"
 else
-    error("OS not set up")
+    error("Unknown OS")
 end
 
 using MATLAB
@@ -28,11 +38,11 @@ function model_temperatures(LOCA1_time::Float64, ACS1_time::Float64)
     # Call MATLAB function with multiple outputs
     T_W1, T_W2, T_W3, T_W4 = mxcall(:Simulation_model, 4, LOCA1_time, ACS1_time)
     df = DataFrame(
-        max_T_W1=maximum(T_W1),
-        max_T_W2=maximum(T_W2),
-        max_T_W3=maximum(T_W3),
-        max_T_W4=maximum(T_W4)
-    )
+                   max_T_W1=maximum(T_W1),
+                   max_T_W2=maximum(T_W2),
+                   max_T_W3=maximum(T_W3),
+                   max_T_W4=maximum(T_W4)
+                  )
     return df
 end
 
