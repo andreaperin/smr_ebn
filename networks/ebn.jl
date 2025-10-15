@@ -1,6 +1,4 @@
 using Distributed
-numProcs = 10
-addprocs(numProcs)
 
 @everywhere begin
     using EnhancedBayesianNetworks
@@ -89,17 +87,17 @@ addprocs(numProcs)
     include("model_T.jl")
 
     # --- Parallel wrapper for the plant model (t_loca and t_acs1) ---
-    function _run_model_temperatures(t_loca::Real, t_acs1::Real)
-        return model_temperatures(t_loca, t_acs1)
-    end
-
+    # function _run_model_temperatures(t_loca::Real, t_acs1::Real)
+    #     return model_temperatures(t_loca, t_acs1)
+    # end
+    #
     # Map over aligned vectors with pmap (each pair (t_loca, t_acs1) is one simulation)
-    parallel_model_temperatures(ts_loca::AbstractVector, ts_acs1::AbstractVector) =
-        pmap((tl, ta) -> _run_model_temperatures(tl, ta), ts_loca, ts_acs1)
+    # parallel_model_temperatures(ts_loca::AbstractVector, ts_acs1::AbstractVector) =
+    # pmap((tl, ta) -> _run_model_temperatures(tl, ta), ts_loca, ts_acs1)
+    #
+    # model_temp = Model(df -> parallel_model_temperatures(df.t_loca, df.t_acs1), :max_Ts)
 
-    model_temp = Model(df -> parallel_model_temperatures(df.t_loca, df.t_acs1), :max_Ts)
-
-
+    model = ParallelModel(df->model_temperatures(df.t_loca, df.t_acs1), :max_Ts)
     function performance_function(threshold::Real, df::DataFrame)
         maxval = maximum(Matrix(df))
         return threshold - maxval
@@ -107,7 +105,7 @@ addprocs(numProcs)
 
     performance = df -> performance_function.(threshold, df.max_Ts)
     sim = MonteCarlo(SIMULATIONS)
-    model_node = DiscreteFunctionalNode(:Reactor, [model_temp], performance, sim)
+    model_node = DiscreteFunctionalNode(:Reactor, [model], performance, sim)
 
 
     ``` Enhanced Bayesian Networks
@@ -123,11 +121,10 @@ addprocs(numProcs)
     add_child!(ebn, :ACS1, :t_acs1)
     add_child!(ebn, :t_acs1, :Reactor)
     order!(ebn)
-
-    # --- initial time ---
-    t0 = time_ns()
-
 end
+# --- initial time ---
+t0 = time_ns()
+
 
 evaluate!(ebn)
 
@@ -135,11 +132,9 @@ evaluate!(ebn)
 path_to_ebn = joinpath(current_dir, "networks", "ebn_jld2")
 mkpath(path_to_ebn)
 ebn_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" *
-           string(model_node.simulation) * ".jld2"
+string(model_node.simulation) * ".jld2"
 @save joinpath(path_to_ebn, ebn_name) ebn
 
 # Print elapsed time
 seconds = (time_ns() - t0) / 1e9
 println("Elapsed time: $(round(seconds, digits=3)) s")
-
-rmprocs(workers())
