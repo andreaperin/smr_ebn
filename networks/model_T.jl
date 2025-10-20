@@ -10,32 +10,6 @@ using MATLAB
 
 using DataFrames
 
-function model_temperatures(LOCA1_time::Float64, ACS1_time::Float64)
-    # Add MATLAB function folder to path
-    LOCA1_time = Float64(LOCA1_time)
-    ACS1_time = Float64(ACS1_time)
-
-    mat"close all; clear all;"
-
-    mat"""
-    addpath('./modelSMR')
-    """
-    # Suppress all MATLAB warnings
-    mat"warning('off', 'all');"
-    # Disable Simulink autosave recovery (prevents the message)
-    mat"set_param(0, 'RecoverAutosave', 'off');"
-
-    # Call MATLAB function with multiple outputs
-    T_W1, T_W2, T_W3, T_W4 = mxcall(:Simulation_model, 4, LOCA1_time, ACS1_time)
-    df = DataFrame(
-        max_T_W1=maximum(T_W1),
-        max_T_W2=maximum(T_W2),
-        max_T_W3=maximum(T_W3),
-        max_T_W4=maximum(T_W4)
-    )
-    return df
-end
-
 function model_temperatures(
     LOCA_time::Float64,
     LOOP_time::Float64,
@@ -75,7 +49,7 @@ function model_temperatures(
     mat"set_param(0, 'RecoverAutosave', 'off');"
 
     # Call MATLAB function with multiple outputs
-    T_W1, T_W2, T_W3, T_W4 = mxcall(:Simulation_model, 4,
+    T_W1, T_W2, T_W3, T_W4 = mxcall(:Simulation_model_hydrogen, 4,
         LOCA_time,
         LOOP_time,
         LHS_time,
@@ -89,7 +63,6 @@ function model_temperatures(
         pdp_time,
         pdp_rtime
     )
-
     df = DataFrame(
         max_T_W1=maximum(T_W1),
         max_T_W2=maximum(T_W2),
@@ -98,6 +71,7 @@ function model_temperatures(
     )
     return df
 end
+
 a = model_temperatures(20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0)
 
 # @show(a)
