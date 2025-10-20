@@ -36,6 +36,68 @@ function model_temperatures(LOCA1_time::Float64, ACS1_time::Float64)
     return df
 end
 
-# a = model_temperatures(20.0, 20.0)
+function model_temperatures(
+    LOCA_time::Float64,
+    LOOP_time::Float64,
+    LHS_time::Float64,
+    MSLB_time::Float64,
+    MSLBH2_time::Float64,
+    LOOPH2_time::Float64,
+    ACS_time::Float64,
+    ACS_rtime::Float64,
+    EDG_time::Float64,
+    EDG_rtime::Float64,
+    pdp_time::Float64,
+    pdp_rtime::Float64
+)
+    # Add MATLAB function folder to path
+    LOCA_time = Float64(LOCA_time)
+    LOOP_time = Float64(LOOP_time)
+    LHS_time = Float64(LHS_time)
+    MSLB_time = Float64(MSLB_time)
+    MSLBH2_time = Float64(MSLBH2_time)
+    LOOPH2_time = Float64(LOOPH2_time)
+    ACS_time = Float64(ACS_time)
+    ACS_rtime = Float64(ACS_rtime)
+    EDG_time = Float64(EDG_time)
+    EDG_rtime = Float64(EDG_rtime)
+    pdp_time = Float64(pdp_time)
+    pdp_rtime = Float64(pdp_rtime)
+
+    mat"close all; clear all;"
+
+    mat"""
+    addpath('./modelSMR')
+    """
+    # Suppress all MATLAB warnings
+    mat"warning('off', 'all');"
+    # Disable Simulink autosave recovery (prevents the message)
+    mat"set_param(0, 'RecoverAutosave', 'off');"
+
+    # Call MATLAB function with multiple outputs
+    T_W1, T_W2, T_W3, T_W4 = mxcall(:Simulation_model, 4,
+        LOCA_time,
+        LOOP_time,
+        LHS_time,
+        MSLB_time,
+        MSLBH2_time,
+        LOOPH2_time,
+        ACS_time,
+        ACS_rtime,
+        EDG_time,
+        EDG_rtime,
+        pdp_time,
+        pdp_rtime
+    )
+
+    df = DataFrame(
+        max_T_W1=maximum(T_W1),
+        max_T_W2=maximum(T_W2),
+        max_T_W3=maximum(T_W3),
+        max_T_W4=maximum(T_W4)
+    )
+    return df
+end
+a = model_temperatures(20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0)
 
 # @show(a)
