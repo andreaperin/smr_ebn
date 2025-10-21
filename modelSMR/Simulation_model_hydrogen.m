@@ -32,7 +32,7 @@ end
 assignin('base', 'LOCA1_time', LOCA_time);
 assignin('base', 'ACS_1', ACS_time);
 assignin('base', 'Power', min(LOOPH2_time,LOOP_time));
-assignin('base', 'MSLB1', min(MSLB_time, MSLBH2_time));
+assignin('base', 'MSLB1', min([MSLB_time, MSLBH2_time,LHS_time]));
 assignin('base', 'ACS1_response_time', ACS_rtime);
 assignin('base', 'EDG_1', EDG_time);
 assignin('base', 'EDG1_response_time', EDG_rtime);
@@ -44,6 +44,7 @@ evalc('SMDFR_Parameters');
 
 % === Model configuration ===
 model = 'SMDFR_HTE_model';
+model = 'SMDFR';
 load_system(model);
 set_param(model, 'UnconnectedOutputMsg', 'none');
 
