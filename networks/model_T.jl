@@ -1,5 +1,5 @@
 if Sys.islinux()
-    ENV["MATLAB_HOME"] = "/usr/local/MATLAB/R2023a"
+    ENV["MATLAB_HOME"] = expanduser("~/Matlab/R2025b")
 elseif Sys.isapple()
     ENV["MATLAB_HOME"] = "/Applications/MATLAB_R2024b.app"
 else
