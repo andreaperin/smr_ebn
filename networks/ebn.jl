@@ -10,7 +10,7 @@ using DataFrames
 using JLD2
 using Dates
 
-const SIMULATIONS = 10 # number of Monte Carlo simulations
+const SIMULATIONS = 1 # number of Monte Carlo simulations
 const threshold = 1243.9
 
 const current_dir = pwd()
@@ -428,31 +428,20 @@ rt_pdp_node = ContinuousNode(:rt_pdp, rt_pdp_cpt)
 
 
 
+``` MODEL node
+```
+include("model_T.jl")
 
+model_temp = ParallelModel(df -> model_temperatures(df.t_loca, df.t_loop, df.t_LHS, df.t_mslb, df.t_MSLBH2, df.t_LOOPH2, df.t_acs, df.rt_acs, df.t_edg, df.rt_edg, df.t_pdp, df.rt_pdp), :max_Ts)
 
+function performance_function(threshold::Real, df::DataFrame)
+    maxval = maximum(Matrix(df))
+    return threshold - maxval
+end
 
-
-
-
-
-
-
-
-# ``` MODEL node
-# ```
-# include("model_T.jl")
-
-# model_temp = ParallelModel(df -> model_temperatures(df.t_loca, df.t_acs), :max_Ts)
-
-
-# function performance_function(threshold::Real, df::DataFrame)
-#     maxval = maximum(Matrix(df))
-#     return threshold - maxval
-# end
-
-# performance = df -> performance_function.(threshold, df.max_Ts)
-# sim = MonteCarlo(SIMULATIONS)
-# model_node = DiscreteFunctionalNode(:Reactor, [model_temp], performance, sim)
+performance = df -> performance_function.(threshold, df.max_Ts)
+sim = MonteCarlo(SIMULATIONS)
+model_node = DiscreteFunctionalNode(:Reactor, [model_temp], performance, sim)
 
 
 ``` Enhanced Bayesian Networks
@@ -468,7 +457,8 @@ nodes = [
     LOOPH2_node, t_LOOPH2_node,
     LHS_node, t_LHS_node, acs_node, t_acs_node, rt_acs_node,
     edg_node, t_edg_node, rt_edg_node,
-    pdp_node, t_pdp_node, rt_pdp_node
+    pdp_node, t_pdp_node, rt_pdp_node,
+    model_node
 ]
 
 ebn = EnhancedBayesianNetwork(nodes)
@@ -500,30 +490,38 @@ add_child!(ebn, :PGA, :ACS)
 add_child!(ebn, :ACS, :t_acs)
 add_child!(ebn, :ACS, :rt_acs)
 
-
 add_child!(ebn, :AGE, :EDG)
 add_child!(ebn, :PGA, :EDG)
 add_child!(ebn, :EDG, :t_edg)
 add_child!(ebn, :EDG, :rt_edg)
-
 
 add_child!(ebn, :AGE, :PDP)
 add_child!(ebn, :PGA, :PDP)
 add_child!(ebn, :PDP, :t_pdp)
 add_child!(ebn, :PDP, :rt_pdp)
 
+add_child!(ebn, :t_loca, :Reactor)
+add_child!(ebn, :t_loop, :Reactor)
+add_child!(ebn, :t_mslb, :Reactor)
+add_child!(ebn, :t_MSLBH2, :Reactor)
+add_child!(ebn, :t_LOOPH2, :Reactor)
+add_child!(ebn, :t_LHS, :Reactor)
+add_child!(ebn, :t_acs, :Reactor)
+add_child!(ebn, :rt_acs, :Reactor)
+add_child!(ebn, :t_edg, :Reactor)
+add_child!(ebn, :rt_edg, :Reactor)
+add_child!(ebn, :t_pdp, :Reactor)
+add_child!(ebn, :rt_pdp, :Reactor)
 
-# add_child!(ebn, :t_acs, :Reactor)
-# add_child!(ebn, :t_loca, :Reactor)
 
 order!(ebn)
-
+# gplot(ebn; NODESIZEFACTOR=0.1, ARROWLENGTH=0.05, NODELABELSIZE=3)
 # --- initial time ---
 t0 = time_ns()
 
 # end
 
-evaluate!(ebn)
+evaluate!(ebn, false, true)
 
 # # Save the network to disk
 # path_to_ebn = joinpath(current_dir, "networks", "ebn_jld2")
