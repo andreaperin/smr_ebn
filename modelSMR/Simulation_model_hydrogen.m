@@ -86,22 +86,6 @@ in = in.setVariable('ACS2_flow', ACS2_flow * alpha_2);
 in = in.setVariable('ACS3_flow', ACS3_flow * alpha_3);
 in = in.setVariable('ACS4_flow', ACS4_flow * alpha_4);
 
-out = sim(in);
-
-% === Extract temperature results ===
-try
-    T_W1 = reshape(max(out.T_W1, [], 1), [1, tsim])';
-    T_W2 = reshape(max(out.T_W2, [], 1), [1, tsim])';
-    T_W3 = reshape(max(out.T_W3, [], 1), [1, tsim])';
-    T_W4 = reshape(max(out.T_W4, [], 1), [1, tsim])';
-catch
-    warning('Temperature extraction failed; filling with NaNs.');
-    T_W1 = NaN(tsim, 1);
-    T_W2 = NaN(tsim, 1);
-    T_W3 = NaN(tsim, 1);
-    T_W4 = NaN(tsim, 1);
-end
-
 vars = in.Variables;
 fprintf('Simulation inputs:\n');
 for idx = 1:numel(vars)
@@ -118,6 +102,24 @@ for idx = 1:numel(vars)
     end
     fprintf('  %s: %s\n', varName, valueStr);
 end
+
+
+out = sim(in);
+
+% === Extract temperature results ===
+try
+    T_W1 = reshape(max(out.T_W1, [], 1), [1, tsim])';
+    T_W2 = reshape(max(out.T_W2, [], 1), [1, tsim])';
+    T_W3 = reshape(max(out.T_W3, [], 1), [1, tsim])';
+    T_W4 = reshape(max(out.T_W4, [], 1), [1, tsim])';
+catch
+    warning('Temperature extraction failed; filling with NaNs.');
+    T_W1 = NaN(tsim, 1);
+    T_W2 = NaN(tsim, 1);
+    T_W3 = NaN(tsim, 1);
+    T_W4 = NaN(tsim, 1);
+end
+
 
 toc
 end
