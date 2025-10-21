@@ -102,5 +102,22 @@ catch
     T_W4 = NaN(tsim, 1);
 end
 
+vars = in.Variables;
+fprintf('Simulation inputs:\n');
+for idx = 1:numel(vars)
+    varName = vars(idx).Name;
+    varValue = vars(idx).Value;
+    if isnumeric(varValue) || islogical(varValue)
+        valueStr = mat2str(varValue);
+    elseif isstring(varValue)
+        valueStr = strjoin(cellstr(varValue), ', ');
+    elseif ischar(varValue)
+        valueStr = varValue;
+    else
+        valueStr = strtrim(evalc('disp(varValue)'));
+    end
+    fprintf('  %s: %s\n', varName, valueStr);
+end
+
 toc
 end
