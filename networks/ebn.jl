@@ -515,15 +515,15 @@ t0 = time_ns()
 
 evaluate!(ebn, false, true)
 
-# # Save the network to disk
-# path_to_ebn = joinpath(current_dir, "networks", "ebn_jld2")
-# mkpath(path_to_ebn)
-# ebn_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" *
-#            string(model_node.simulation) * ".jld2"
-# @save joinpath(path_to_ebn, ebn_name) ebn
+# Save the network to disk
+path_to_ebn = joinpath(current_dir, "networks", "ebn_jld2")
+mkpath(path_to_ebn)
+ebn_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" *
+           string(model_node.simulation) * ".jld2"
+@save joinpath(path_to_ebn, ebn_name) ebn
 
-# # Print elapsed time
-# seconds = (time_ns() - t0) / 1e9
-# println("Elapsed time: $(round(seconds, digits=3)) s")
+# Print elapsed time
+seconds = (time_ns() - t0) / 1e9
+println("Elapsed time: $(round(seconds, digits=3)) s")
 
 # rmprocs(workers())
