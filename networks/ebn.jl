@@ -1,8 +1,8 @@
-# using Distributed
-# numProcs = 10
-# addprocs(numProcs)
+using Distributed
+numProcs = 10
+addprocs(numProcs)
 
-# @everywhere begin
+@everywhere begin
 using EnhancedBayesianNetworks
 using EnhancedBayesianNetworks: evaluate!
 using CSV
@@ -511,7 +511,7 @@ gplot(ebn; NODESIZEFACTOR=0.1, ARROWLENGTH=0.05, NODELABELSIZE=2.5)
 # --- initial time ---
 t0 = time_ns()
 
-# end
+end
 
 evaluate!(ebn, false, true)
 
@@ -526,4 +526,4 @@ ebn_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" *
 seconds = (time_ns() - t0) / 1e9
 println("Elapsed time: $(round(seconds, digits=3)) s")
 
-# rmprocs(workers())
+rmprocs(workers())
