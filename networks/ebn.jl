@@ -15,9 +15,6 @@ const threshold = 1243.9
 
 const current_dir = pwd()
 
-# I TEMPI DI RISPOSTA NON DIPENDONO DAL FALLIMENTO!!!!
-
-
 ``` PGA node peak ground acceleration
 ```
 cpt_pga = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}(:PGA)
@@ -359,9 +356,8 @@ t_acs_node = ContinuousNode(:t_acs, t_acs_cpt)
 
 ``` ACS-rTIME node
 ```
-rt_acs_cpt = ContinuousConditionalProbabilityTable{PreciseContinuousInput}(:ACS)
-rt_acs_cpt[:ACS=>:YES_ACS] = Uniform(30.0, 90.0)
-rt_acs_cpt[:ACS=>:NO_ACS] = Uniform(30.0, 90.0)
+rt_acs_cpt = ContinuousConditionalProbabilityTable{PreciseContinuousInput}()
+rt_acs_cpt[] = Uniform(30.0, 90.0)
 rt_acs_node = ContinuousNode(:rt_acs, rt_acs_cpt)
 
 
@@ -391,9 +387,8 @@ t_edg_node = ContinuousNode(:t_edg, t_edg_cpt)
 
 ``` EDG-rTIME node
 ```
-rt_edg_cpt = ContinuousConditionalProbabilityTable{PreciseContinuousInput}(:EDG)
-rt_edg_cpt[:EDG=>:YES_EDG] = Uniform(10.0, 180.0)
-rt_edg_cpt[:EDG=>:NO_EDG] = Uniform(10.0, 180.0)
+rt_edg_cpt = ContinuousConditionalProbabilityTable{PreciseContinuousInput}()
+rt_edg_cpt[] = Uniform(10.0, 180.0)
 rt_edg_node = ContinuousNode(:rt_edg, rt_edg_cpt)
 
 
@@ -423,11 +418,9 @@ t_pdp_node = ContinuousNode(:t_pdp, t_pdp_cpt)
 
 ``` PDP-rTIME node
 ```
-rt_pdp_cpt = ContinuousConditionalProbabilityTable{PreciseContinuousInput}(:PDP)
-rt_pdp_cpt[:PDP=>:YES_PDP] = Uniform(10, 180)
-rt_pdp_cpt[:PDP=>:NO_PDP] = Uniform(10, 180)
+rt_pdp_cpt = ContinuousConditionalProbabilityTable{PreciseContinuousInput}()
+rt_pdp_cpt[] = Uniform(10, 180)
 rt_pdp_node = ContinuousNode(:rt_pdp, rt_pdp_cpt)
-
 
 
 ``` MODEL node
@@ -490,17 +483,14 @@ add_child!(ebn, :LHS, :t_LHS)
 add_child!(ebn, :AGE, :ACS)
 add_child!(ebn, :PGA, :ACS)
 add_child!(ebn, :ACS, :t_acs)
-add_child!(ebn, :ACS, :rt_acs)
 
 add_child!(ebn, :AGE, :EDG)
 add_child!(ebn, :PGA, :EDG)
 add_child!(ebn, :EDG, :t_edg)
-add_child!(ebn, :EDG, :rt_edg)
 
 add_child!(ebn, :AGE, :PDP)
 add_child!(ebn, :PGA, :PDP)
 add_child!(ebn, :PDP, :t_pdp)
-add_child!(ebn, :PDP, :rt_pdp)
 
 add_child!(ebn, :t_loca, :Reactor)
 add_child!(ebn, :t_loop, :Reactor)
@@ -517,7 +507,7 @@ add_child!(ebn, :rt_pdp, :Reactor)
 
 
 order!(ebn)
-# gplot(ebn; NODESIZEFACTOR=0.1, ARROWLENGTH=0.05, NODELABELSIZE=3)
+gplot(ebn; NODESIZEFACTOR=0.1, ARROWLENGTH=0.05, NODELABELSIZE=2.5)
 # --- initial time ---
 t0 = time_ns()
 
