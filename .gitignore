@@ -625,3 +625,8 @@ Icon
 .Spotlight-V100
 .Trashes
 .fseventsd
+SMDFR.slxc
+.gitignore
+slprj/sim/varcache/SMDFR/checksumOfCache.mat
+slprj/sim/varcache/SMDFR/varInfo.mat
+slprj/sim/varcache/SMDFR/tmwinternal/simulink_cache.xml
