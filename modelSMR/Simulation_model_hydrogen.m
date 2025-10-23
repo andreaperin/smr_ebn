@@ -18,32 +18,33 @@ tbl  = readtable('Failure_model_outputs.csv');
 S    = table2struct(tbl,'ToScalar',true);
 names = fieldnames(S);
 
-for k = 1:numel(names)
-    name = names{k};
-    value = S.(name);
-
-    if iscell(value), value = cell2mat(value); end
-    if ischar(value), value = str2double(value); end
-
-    assignin('base', name, value);
-end
+% for k = 1:numel(names)
+%     name = names{k};
+%     value = S.(name);
+% 
+%     if iscell(value), value = cell2mat(value); end
+%     if ischar(value), value = str2double(value); end
+% 
+%     assignin('base', name, value);
+% end
 
 % Override LOCA1_time with user input
-assignin('base', 'LOCA1_time', LOCA_time);
-assignin('base', 'ACS_1', ACS_time);
-assignin('base', 'Power', min(LOOPH2_time,LOOP_time));
-assignin('base', 'MSLB1', min([MSLB_time, MSLBH2_time,LHS_time]));
-assignin('base', 'ACS1_response_time', ACS_rtime);
-assignin('base', 'EDG_1', EDG_time);
-assignin('base', 'EDG1_response_time', EDG_rtime);
-assignin('base', 'PDP11', pdp_time);
-assignin('base', 'PDP11_response_time', pdp_rtime);
-assignin('base', 'LHS', LHS_time);
+% assignin('base', 'LOCA1_time', LOCA_time);
+% assignin('base', 'ACS_1', ACS_time);
+% assignin('base', 'Power', min(LOOPH2_time,LOOP_time));
+% assignin('base', 'MSLB1', min([MSLB_time, MSLBH2_time,LHS_time]));
+% assignin('base', 'ACS1_response_time', ACS_rtime);
+% assignin('base', 'EDG_1', EDG_time);
+% assignin('base', 'EDG1_response_time', EDG_rtime);
+% assignin('base', 'PDP11', pdp_time);
+% assignin('base', 'PDP11_response_time', pdp_rtime);
+% assignin('base', 'LHS', LHS_time);
+
 % Load parameter script
 evalc('SMDFR_Parameters');
 
 % === Model configuration ===
-model = 'SMDFR_HTE_model';
+% model = 'SMDFR_HTE_model';
 model = 'SMDFR';
 load_system(model);
 set_param(model, 'UnconnectedOutputMsg', 'none');
@@ -69,17 +70,20 @@ in = in.setVariable('PDP11', pdp_time);
 in = in.setVariable('PDP11_response_time', pdp_rtime);
 in = in.setVariable('LHS', LHS_time);
 % Set remaining variables from base workspace
-varlist = {'LOCA2_time','LOCA3_time','LOCA4_time','ACS_2','ACS_3','ACS_4', ...
-           'EDG_2','PDP12','PDP21','PDP22','PDP31','PDP32', ...
-           'PDP41','PDP42','MSLB2','MSLB3','MSLB4','thermal_failure', ...
-           'thermal_failure_time','PGA',"ACS2_response_time", ...
-           "ACS3_response_time","ACS4_response_time","EDG2_response_time",...
-           "PDP12_response_time","PDP21_response_time","PDP22_response_time",...
-           "PDP31_response_time","PDP32_response_time","PDP41_response_time","PDP42_response_time" };
+% varlist = {'LOCA2_time','LOCA3_time','LOCA4_time','ACS_2','ACS_3','ACS_4', ...
+%     'EDG_2','PDP12','PDP21','PDP22','PDP31','PDP32', ...
+%     'PDP41','PDP42','MSLB2','MSLB3','MSLB4','thermal_failure', ...
+%     'thermal_failure_time','PGA',"ACS2_response_time", ...
+%     "ACS3_response_time","ACS4_response_time","EDG2_response_time",...
+%     "PDP12_response_time","PDP21_response_time","PDP22_response_time",...
+%     "PDP31_response_time","PDP32_response_time","PDP41_response_time","PDP42_response_time" };
+varlist = setdiff(names, arrayfun(@(v) v.Name, in.Variables, 'UniformOutput', false));
+
 for k = 1:numel(varlist)
-    if evalin('base', sprintf('exist(''%s'', ''var'')', varlist{k}))
-        in = in.setVariable(varlist{k}, evalin('base', varlist{k}));
-    end
+    % if evalin('base', sprintf('exist(''%s'', ''var'')', varlist{k}))
+    %     in = in.setVariable(varlist{k}, evalin('base', varlist{k}));
+    % end
+    in = in.setVariable(varlist{k},S.(varlist{k}));
 end
 
 in = in.setVariable('ACS1_flow', ACS1_flow * alpha_1);
