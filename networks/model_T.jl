@@ -24,19 +24,6 @@ function model_temperatures(
     pdp_time::Float64,
     pdp_rtime::Float64
 )
-    # Add MATLAB function folder to path
-    LOCA_time = Float64(LOCA_time)
-    LOOP_time = Float64(LOOP_time)
-    LHS_time = Float64(LHS_time)
-    MSLB_time = Float64(MSLB_time)
-    MSLBH2_time = Float64(MSLBH2_time)
-    LOOPH2_time = Float64(LOOPH2_time)
-    ACS_time = Float64(ACS_time)
-    ACS_rtime = Float64(ACS_rtime)
-    EDG_time = Float64(EDG_time)
-    EDG_rtime = Float64(EDG_rtime)
-    pdp_time = Float64(pdp_time)
-    pdp_rtime = Float64(pdp_rtime)
 
     mat"close all; clear all;"
 
@@ -45,8 +32,6 @@ function model_temperatures(
     """
     # Suppress all MATLAB warnings
     mat"warning('off', 'all');"
-    # Disable Simulink autosave recovery (prevents the message)
-    mat"set_param(0, 'RecoverAutosave', 'off');"
 
     # Call MATLAB function with multiple outputs
     T_W1, T_W2, T_W3, T_W4 = mxcall(:Simulation_model_hydrogen, 4,
@@ -72,6 +57,71 @@ function model_temperatures(
     return df
 end
 
+
+function model_temperatures_parallel(
+    LOCA_time::Vector{Float64},
+    LOOP_time::Vector{Float64},
+    LHS_time::Vector{Float64},
+    MSLB_time::Vector{Float64},
+    MSLBH2_time::Vector{Float64},
+    LOOPH2_time::Vector{Float64},
+    ACS_time::Vector{Float64},
+    ACS_rtime::Vector{Float64},
+    EDG_time::Vector{Float64},
+    EDG_rtime::Vector{Float64},
+    pdp_time::Vector{Float64},
+    pdp_rtime::Vector{Float64}
+)
+
+    mat"close all; clear all;"
+
+    mat"""
+    addpath('./modelSMR')
+    """
+    # Suppress all MATLAB warnings
+    mat"warning('off', 'all');"
+
+    # Call MATLAB function with multiple outputs
+    T_W1, T_W2, T_W3, T_W4 = mxcall(:Simulation_model_hydrogen_parallel, 4,
+        LOCA_time,
+        LOOP_time,
+        LHS_time,
+        MSLB_time,
+        MSLBH2_time,
+        LOOPH2_time,
+        ACS_time,
+        ACS_rtime,
+        EDG_time,
+        EDG_rtime,
+        pdp_time,
+        pdp_rtime
+    )
+
+    df = DataFrame(
+        max_T_W1=vec(maximum(T_W1, dims=2)),
+        max_T_W2=vec(maximum(T_W2, dims=2)),
+        max_T_W3=vec(maximum(T_W3, dims=2)),
+        max_T_W4=vec(maximum(T_W4, dims=2)),
+    )
+    return df
+end
+
 # a = model_temperatures(20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0)
+
+# val = [20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0]
+
+# LOCA_time = val
+# LOOP_time = val
+# LHS_time = val
+# MSLB_time = val
+# MSLBH2_time = val
+# LOOPH2_time = val
+# ACS_time = val
+# ACS_rtime = val
+# EDG_time = val
+# EDG_rtime = val
+# pdp_time = val
+# pdp_rtime = val
+# a = model_temperatures_parallel(val, val, val, val, val, val, val, val, val, val, val, val)
 
 # @show(a)
