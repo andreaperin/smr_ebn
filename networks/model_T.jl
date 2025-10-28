@@ -1,10 +1,10 @@
-if Sys.islinux()
-    ENV["MATLAB_HOME"] = expanduser("~/Matlab/R2025b")
-elseif Sys.isapple()
-    ENV["MATLAB_HOME"] = "/Applications/MATLAB_R2024b.app"
-else
-    error("OS not set up")
-end
+# if Sys.islinux()
+#     ENV["MATLAB_HOME"] = expanduser("~/Matlab/R2025b")
+# elseif Sys.isapple()
+#     ENV["MATLAB_HOME"] = "/Applications/MATLAB_R2024b.app"
+# else
+#     error("OS not set up")
+# end
 
 using MATLAB
 
@@ -97,18 +97,25 @@ function model_temperatures_parallel(
         pdp_rtime
     )
 
-    df = DataFrame(
-        max_T_W1=vec(maximum(T_W1, dims=2)),
-        max_T_W2=vec(maximum(T_W2, dims=2)),
-        max_T_W3=vec(maximum(T_W3, dims=2)),
-        max_T_W4=vec(maximum(T_W4, dims=2)),
-    )
-    return df
+    # df = DataFrame(
+    #     max_T_W1=vec(maximum(T_W1, dims=2)),
+    #     max_T_W2=vec(maximum(T_W2, dims=2)),
+    #     max_T_W3=vec(maximum(T_W3, dims=2)),
+    #     max_T_W4=vec(maximum(T_W4, dims=2)),
+    # )
+
+    max_T_W1 = vec(maximum(T_W1, dims=2))
+    # max_T_W2 = vec(maximum(T_W2, dims=2))
+    # max_T_W3 = vec(maximum(T_W3, dims=2))
+    # max_T_W4 = vec(maximum(T_W4, dims=2))
+
+    return max_T_W1
 end
 
 # a = model_temperatures(20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0)
 
 # val = [20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0, 20.0, 30.0, 40.0, 50.0, 60.0, 20.0, 25.0, 30.0, 10.0, 155.0]
+# val = [20.0, 30.0, 40.0, 50.0]
 
 # LOCA_time = val
 # LOOP_time = val
@@ -122,6 +129,29 @@ end
 # EDG_rtime = val
 # pdp_time = val
 # pdp_rtime = val
-# a = model_temperatures_parallel(val, val, val, val, val, val, val, val, val, val, val, val)
+# b = model_temperatures_parallel(val, val, val, val, val, val, val, val, val, val, val, val)
 
 # @show(a)
+
+
+# using UncertaintyQuantification
+
+# t_loca = RandomVariable(Uniform(20, 100), :t_loca)
+# t_loop = RandomVariable(Uniform(20, 100), :t_loop)
+# t_LHS = RandomVariable(Uniform(20, 100), :t_LHS)
+# t_mslb = RandomVariable(Uniform(20, 100), :t_mslb)
+# t_MSLBH2 = RandomVariable(Uniform(20, 100), :t_MSLBH2)
+# t_LOOPH2 = RandomVariable(Uniform(20, 100), :t_LOOPH2)
+# t_acs = RandomVariable(Uniform(20, 100), :t_acs)
+# rt_acs = RandomVariable(Uniform(20, 100), :rt_acs)
+# t_edg = RandomVariable(Uniform(20, 100), :t_edg)
+# rt_edg = RandomVariable(Uniform(20, 100), :rt_edg)
+# t_pdp = RandomVariable(Uniform(20, 100), :t_pdp)
+# rt_pdp = RandomVariable(Uniform(20, 100), :rt_pdp)
+
+# inputs = [t_loca, t_loop, t_LHS, t_mslb, t_MSLBH2, t_LOOPH2, t_acs, rt_acs, t_edg, rt_edg, t_pdp, rt_pdp]
+
+# model_temp = Model(df -> model_temperatures_parallel(df.t_loca, df.t_loop, df.t_LHS, df.t_mslb, df.t_MSLBH2, df.t_LOOPH2, df.t_acs, df.rt_acs, df.t_edg, df.rt_edg, df.t_pdp, df.rt_pdp), :max_Ts)
+
+# samples = sample(inputs, 10)
+# UncertaintyQuantification.evaluate!(model_temp, samples)
