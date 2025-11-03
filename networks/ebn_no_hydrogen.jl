@@ -172,7 +172,7 @@
     
     # model_temp = ParallelModel(df -> model_temperatures(df.t_loca, df.t_loop, df.t_LHS, df.t_mslb, df.t_MSLBH2, df.t_LOOPH2, df.t_acs, df.rt_acs, df.t_edg, df.rt_edg, df.t_pdp, df.rt_pdp), :max_Ts)
     
-    model_temp = Model(df -> model_temperatures_parallel(df.t_loca, df.t_loop, df.t_LHS, df.t_mslb, df.t_MSLBH2, df.t_LOOPH2, df.t_acs, df.rt_acs, df.t_edg, df.rt_edg, df.t_pdp, df.rt_pdp), :maxT_W1)
+    model_temp = Model(df -> model_temperatures_parallel(df.t_loca, df.t_loop, df.t_mslb, df.t_acs, df.rt_acs, df.t_edg, df.rt_edg), :maxT_W1)
     
     # function performance_function(threshold::Real, df::DataFrame)
     #     maxval = maximum(Matrix(df))
@@ -217,9 +217,6 @@
     add_child!(ebn, :AGE, :EDG)
     add_child!(ebn, :PGA, :EDG)
     add_child!(ebn, :EDG, :t_edg)
-    
-    add_child!(ebn, :AGE, :PDP)
-    add_child!(ebn, :PGA, :PDP)
     
     add_child!(ebn, :t_loca, :Reactor)
     add_child!(ebn, :t_loop, :Reactor)

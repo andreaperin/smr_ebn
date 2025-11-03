@@ -61,16 +61,11 @@ end
 function model_temperatures_parallel(
     LOCA_time::Vector{Float64},
     LOOP_time::Vector{Float64},
-    LHS_time::Vector{Float64},
     MSLB_time::Vector{Float64},
-    MSLBH2_time::Vector{Float64},
-    LOOPH2_time::Vector{Float64},
     ACS_time::Vector{Float64},
     ACS_rtime::Vector{Float64},
     EDG_time::Vector{Float64},
     EDG_rtime::Vector{Float64},
-    pdp_time::Vector{Float64},
-    pdp_rtime::Vector{Float64}
 )
 
     mat"close all; clear all;"
