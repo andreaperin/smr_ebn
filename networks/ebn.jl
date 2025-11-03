@@ -10,7 +10,7 @@ using DataFrames
 using JLD2
 using Dates
 
-const SIMULATIONS = 3 # number of Monte Carlo simulations
+const SIMULATIONS = 50 # number of Monte Carlo simulations
 const threshold = 1243.9
 
 const current_dir = pwd()
