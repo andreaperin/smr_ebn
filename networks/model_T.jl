@@ -94,7 +94,7 @@ function model_temperatures_parallel(
         EDG_time,
         EDG_rtime,
         pdp_time,
-        pdp_rtime
+        pdp_rtime,
     )
 
     # df = DataFrame(

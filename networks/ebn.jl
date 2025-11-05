@@ -10,7 +10,7 @@ using DataFrames
 using JLD2
 using Dates
 
-const SIMULATIONS = 50 # number of Monte Carlo simulations
+const SIMULATIONS = 100 # number of Monte Carlo simulations
 const threshold = 1243.9
 
 const current_dir = pwd()
@@ -242,14 +242,33 @@ explosion_cpt[:PGA=>:PGA_19, :MSLB=>:YES_MSLB, :EXP=>:NO_EXP] = 1 - 0.66184
 
 explosion_node = DiscreteNode(:EXP, explosion_cpt)
 
+``` Distance node
+```
+distance_cpt = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}([:DISTANCE])
+disatnce_states = ["Distance_250", "Distance_500", "Distance_750", "Distance_1000"]
+map(st -> distance_cpt[:DISTANCE=>Symbol(st)] = 1 / length(distance_states), distance_states)
+distance_node = DiscreteNode(:DISTANCE, distance_cpt)
+
 
 ``` LOOPH2 node
 ```
-LOOPH2_cpt = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}([:EXP, :LOOPH2])
-LOOPH2_cpt[:EXP=>:YES_EXP, :LOOPH2=>:YES_LOOPH2] = 0.004
-LOOPH2_cpt[:EXP=>:YES_EXP, :LOOPH2=>:NO_LOOPH2] = 1 - 0.004
-LOOPH2_cpt[:EXP=>:NO_EXP, :LOOPH2=>:YES_LOOPH2] = 0
-LOOPH2_cpt[:EXP=>:NO_EXP, :LOOPH2=>:NO_LOOPH2] = 1
+LOOPH2_cpt = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}([:EXP, :DISTANCE, :LOOPH2])
+LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_250, :LOOPH2=>:YES_LOOPH2] = 0.004
+LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_250, :LOOPH2=>:NO_LOOPH2] = 1 - 0.004
+LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_250, :LOOPH2=>:YES_LOOPH2] = 0
+LOOPH2_cpt[:EXP=>:NO_EXP,:DISTANCE=>:Distance_250, :LOOPH2=>:NO_LOOPH2] = 1
+LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_500, :LOOPH2=>:YES_LOOPH2] = 0.0013
+LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_500, :LOOPH2=>:NO_LOOPH2] = 1 - 0.0013
+LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_500, :LOOPH2=>:YES_LOOPH2] = 0
+LOOPH2_cpt[:EXP=>:NO_EXP,:DISTANCE=>:Distance_500, :LOOPH2=>:NO_LOOPH2] = 1
+LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_2750, :LOOPH2=>:YES_LOOPH2] = 0.000529
+LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_750, :LOOPH2=>:NO_LOOPH2] = 1 - 0.000529
+LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_750, :LOOPH2=>:YES_LOOPH2] = 0
+LOOPH2_cpt[:EXP=>:NO_EXP,:DISTANCE=>:Distance_750, :LOOPH2=>:NO_LOOPH2] = 1
+LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_1000, :LOOPH2=>:YES_LOOPH2] = 0.000332
+LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_1000, :LOOPH2=>:NO_LOOPH2] = 1 - 0.000334
+LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_1000, :LOOPH2=>:YES_LOOPH2] = 0
+LOOPH2_cpt[:EXP=>:NO_EXP,:DISTANCE=>:Distance_1000, :LOOPH2=>:NO_LOOPH2] = 1
 LOOPH2_node = DiscreteNode(:LOOPH2, LOOPH2_cpt)
 
 
@@ -307,18 +326,41 @@ OC_cpt[:PGA=>:PGA_19, :OC=>:NO_OC] = 1 - 0.01938
 
 OC_node = DiscreteNode(:OC, OC_cpt)
 
-
 ``` LHS node
 ```
-LHS_cpt = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}([:OC, :EXP, :LHS])
-LHS_cpt[:OC=>:YES_OC, :EXP=>:YES_EXP, :LHS=>:YES_LHS] = 1
-LHS_cpt[:OC=>:YES_OC, :EXP=>:YES_EXP, :LHS=>:NO_LHS] = 0
-LHS_cpt[:OC=>:YES_OC, :EXP=>:NO_EXP, :LHS=>:YES_LHS] = 0.0013
-LHS_cpt[:OC=>:YES_OC, :EXP=>:NO_EXP, :LHS=>:NO_LHS] = 1 - 0.0013
-LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :LHS=>:YES_LHS] = 1
-LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :LHS=>:NO_LHS] = 0
-LHS_cpt[:OC=>:NO_OC, :EXP=>:NO_EXP, :LHS=>:YES_LHS] = 0
-LHS_cpt[:OC=>:NO_OC, :EXP=>:NO_EXP, :LHS=>:NO_LHS] = 1
+LHS_cpt = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}([:OC, :EXP,:DISTANCE, :LHS])
+LHS_cpt[:OC=>:YES_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_250, :LHS=>:YES_LHS] = 1
+LHS_cpt[:OC=>:YES_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_250, :LHS=>:NO_LHS] = 0
+LHS_cpt[:OC=>:YES_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_500, :LHS=>:YES_LHS] = 1
+LHS_cpt[:OC=>:YES_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_500, :LHS=>:NO_LHS] = 0
+LHS_cpt[:OC=>:YES_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_750, :LHS=>:YES_LHS] = 1
+LHS_cpt[:OC=>:YES_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_750, :LHS=>:NO_LHS] = 0
+LHS_cpt[:OC=>:YES_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_1000, :LHS=>:YES_LHS] = 1
+LHS_cpt[:OC=>:YES_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_1000, :LHS=>:NO_LHS] = 0
+LHS_cpt[:OC=>:YES_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_250, :LHS=>:YES_LHS] = 1
+LHS_cpt[:OC=>:YES_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_250, :LHS=>:NO_LHS] = 0
+LHS_cpt[:OC=>:YES_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_500, :LHS=>:YES_LHS] = 1
+LHS_cpt[:OC=>:YES_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_500, :LHS=>:NO_LHS] = 0
+LHS_cpt[:OC=>:YES_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_750, :LHS=>:YES_LHS] = 1
+LHS_cpt[:OC=>:YES_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_750, :LHS=>:NO_LHS] = 0
+LHS_cpt[:OC=>:YES_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_1000, :LHS=>:YES_LHS] = 1
+LHS_cpt[:OC=>:YES_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_1000, :LHS=>:NO_LHS] = 0
+LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_250, :LHS=>:YES_LHS] = 0.0013
+LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_250, :LHS=>:NO_LHS] = 1-0.0013
+LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_500, :LHS=>:YES_LHS] = 0.000227
+LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_500, :LHS=>:NO_LHS] = 1-0.000227
+LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_750, :LHS=>:YES_LHS] = 0.000035
+LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_750, :LHS=>:NO_LHS] = 1-0.000035
+LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_1000, :LHS=>:YES_LHS] = 0.000002
+LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_1000, :LHS=>:NO_LHS] = 1-0.000002
+LHS_cpt[:OC=>:NO_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_250, :LHS=>:YES_LHS] = 0
+LHS_cpt[:OC=>:NO_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_250, :LHS=>:NO_LHS] = 1
+LHS_cpt[:OC=>:NO_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_500, :LHS=>:YES_LHS] = 0
+LHS_cpt[:OC=>:NO_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_500, :LHS=>:NO_LHS] = 1
+LHS_cpt[:OC=>:NO_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_750, :LHS=>:YES_LHS] = 0
+LHS_cpt[:OC=>:NO_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_750, :LHS=>:NO_LHS] = 1
+LHS_cpt[:OC=>:NO_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_1000, :LHS=>:YES_LHS] = 0
+LHS_cpt[:OC=>:NO_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_1000, :LHS=>:NO_LHS] = 1
 LHS_node = DiscreteNode(:LHS, LHS_cpt)
 
 

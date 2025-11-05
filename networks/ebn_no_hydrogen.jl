@@ -10,7 +10,7 @@
     using JLD2
     using Dates
     
-    const SIMULATIONS = 50 # number of Monte Carlo simulations
+    const SIMULATIONS = 100 # number of Monte Carlo simulations
     const threshold = 1243.9
     
     const current_dir = pwd()
@@ -162,8 +162,6 @@
     rt_edg_cpt = ContinuousConditionalProbabilityTable{PreciseContinuousInput}()
     rt_edg_cpt[] = Uniform(10.0, 180.0)
     rt_edg_node = ContinuousNode(:rt_edg, rt_edg_cpt)
-    
-    
     
     
     ``` MODEL node
