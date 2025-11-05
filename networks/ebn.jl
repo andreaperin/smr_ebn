@@ -10,7 +10,7 @@ using DataFrames
 using JLD2
 using Dates
 
-const SIMULATIONS = 100 # number of Monte Carlo simulations
+const SIMULATIONS = 50 # number of Monte Carlo simulations
 const threshold = 1243.9
 
 const current_dir = pwd()
@@ -245,7 +245,7 @@ explosion_node = DiscreteNode(:EXP, explosion_cpt)
 ``` Distance node
 ```
 distance_cpt = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}([:DISTANCE])
-disatnce_states = ["Distance_250", "Distance_500", "Distance_750", "Distance_1000"]
+distance_states = ["Distance_250", "Distance_500", "Distance_750", "Distance_1000"]
 map(st -> distance_cpt[:DISTANCE=>Symbol(st)] = 1 / length(distance_states), distance_states)
 distance_node = DiscreteNode(:DISTANCE, distance_cpt)
 
@@ -261,12 +261,12 @@ LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_500, :LOOPH2=>:YES_LOOPH2] = 0.0
 LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_500, :LOOPH2=>:NO_LOOPH2] = 1 - 0.0013
 LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_500, :LOOPH2=>:YES_LOOPH2] = 0
 LOOPH2_cpt[:EXP=>:NO_EXP,:DISTANCE=>:Distance_500, :LOOPH2=>:NO_LOOPH2] = 1
-LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_2750, :LOOPH2=>:YES_LOOPH2] = 0.000529
+LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_750, :LOOPH2=>:YES_LOOPH2] = 0.000529
 LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_750, :LOOPH2=>:NO_LOOPH2] = 1 - 0.000529
 LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_750, :LOOPH2=>:YES_LOOPH2] = 0
 LOOPH2_cpt[:EXP=>:NO_EXP,:DISTANCE=>:Distance_750, :LOOPH2=>:NO_LOOPH2] = 1
 LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_1000, :LOOPH2=>:YES_LOOPH2] = 0.000332
-LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_1000, :LOOPH2=>:NO_LOOPH2] = 1 - 0.000334
+LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_1000, :LOOPH2=>:NO_LOOPH2] = 1 - 0.000332
 LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_1000, :LOOPH2=>:YES_LOOPH2] = 0
 LOOPH2_cpt[:EXP=>:NO_EXP,:DISTANCE=>:Distance_1000, :LOOPH2=>:NO_LOOPH2] = 1
 LOOPH2_node = DiscreteNode(:LOOPH2, LOOPH2_cpt)
@@ -499,7 +499,7 @@ nodes = [
     LHS_node, t_LHS_node, acs_node, t_acs_node, rt_acs_node,
     edg_node, t_edg_node, rt_edg_node,
     pdp_node, t_pdp_node, rt_pdp_node,
-    model_node
+    model_node, distance_node
 ]
 
 ebn = EnhancedBayesianNetwork(nodes)
@@ -550,6 +550,9 @@ add_child!(ebn, :t_edg, :Reactor)
 add_child!(ebn, :rt_edg, :Reactor)
 add_child!(ebn, :t_pdp, :Reactor)
 add_child!(ebn, :rt_pdp, :Reactor)
+
+add_child!(ebn, :DISTANCE, :LOOPH2)
+add_child!(ebn, :DISTANCE, :LHS)
 
 
 order!(ebn)
