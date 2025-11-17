@@ -61,16 +61,11 @@ end
 function model_temperatures_parallel(
     LOCA_time::Vector{Float64},
     LOOP_time::Vector{Float64},
-    LHS_time::Vector{Float64},
     MSLB_time::Vector{Float64},
-    MSLBH2_time::Vector{Float64},
-    LOOPH2_time::Vector{Float64},
     ACS_time::Vector{Float64},
     ACS_rtime::Vector{Float64},
     EDG_time::Vector{Float64},
     EDG_rtime::Vector{Float64},
-    pdp_time::Vector{Float64},
-    pdp_rtime::Vector{Float64}
 )
 
     mat"close all; clear all;"
@@ -85,16 +80,16 @@ function model_temperatures_parallel(
     T_W1, T_W2, T_W3, T_W4 = mxcall(:Simulation_model_hydrogen_parallel, 4,
         LOCA_time,
         LOOP_time,
-        LHS_time,
+        1200,
         MSLB_time,
-        MSLBH2_time,
-        LOOPH2_time,
+        1200,
+        1200,
         ACS_time,
         ACS_rtime,
         EDG_time,
         EDG_rtime,
-        pdp_time,
-        pdp_rtime,
+        1200,
+        0
     )
 
     # df = DataFrame(
