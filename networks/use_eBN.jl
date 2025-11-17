@@ -1,11 +1,15 @@
 using EnhancedBayesianNetworks
 using JLD2
-using Printf
 using Plots
+using Printf
 
 const MODEL_PATH = "/Users/stefanomarchetti/Library/CloudStorage/OneDrive-PolitecnicodiMilano/Python/Cursor/smr_ebn/networks/ebn_jld2/2025_11_05_21_16_MonteCarlo(50).jld2"
 const FAILURE_STATE = :Reactor_fail
-const PLOT_PATH = "networks/imgs/hydrogen_accident_ranking.png"
+const AGE_STATES = Tuple(Symbol("AGE_$(i)0") for i in 0:5)
+const AGE_EVIDENCE_STATE = AGE_STATES[1]
+const DISTANCE_STATE = :Distance_500
+const PLOT_DIR = joinpath(@__DIR__, "imgs")
+const FAILURE_SCALE = 1.2e-3
 const HYDROGEN_ACCIDENTS = [
     (node = :OC, state = :YES_OC, label = "OC"),
     (node = :EXP, state = :YES_EXP, label = "EXP"),
@@ -14,6 +18,9 @@ const HYDROGEN_ACCIDENTS = [
 
 @load MODEL_PATH ebn
 bn = dispatch(ebn)
+
+distance_evidence() = Evidence(:DISTANCE => DISTANCE_STATE, :AGE => AGE_EVIDENCE_STATE)
+distance_evidence(pairs::Pair...) = Evidence(:DISTANCE => DISTANCE_STATE, :AGE => AGE_EVIDENCE_STATE, pairs...)
 
 function probability_of_state(ϕ::Factor, node::Symbol, state::Symbol)
     mapping = get(ϕ.states_mapping, node) do
@@ -27,9 +34,10 @@ function probability_of_state(ϕ::Factor, node::Symbol, state::Symbol)
 end
 
 function rank_hydrogen_accidents(bn::BayesianNetwork, accidents, failure_state::Symbol)
-    failure_factor = infer(bn, :Reactor)
+    base_evidence = distance_evidence()
+    failure_factor = infer(bn, :Reactor, base_evidence)
     p_failure = probability_of_state(failure_factor, :Reactor, failure_state)
-    failure_evidence = Evidence(:Reactor => failure_state)
+    failure_evidence = distance_evidence(:Reactor => failure_state)
 
     results = Vector{NamedTuple{(
         :label,
@@ -44,7 +52,7 @@ function rank_hydrogen_accidents(bn::BayesianNetwork, accidents, failure_state::
         accident_state = spec.state
         label = spec.label
 
-        prior_factor = infer(bn, node)
+        prior_factor = infer(bn, node, base_evidence)
         posterior_factor = infer(bn, node, failure_evidence)
 
         p_accident = float(probability_of_state(prior_factor, node, accident_state))
@@ -68,54 +76,63 @@ function rank_hydrogen_accidents(bn::BayesianNetwork, accidents, failure_state::
     return results[order], p_failure
 end
 
-function plot_accident_impacts(ranked_impacts, failure_state::Symbol; output_path::String=PLOT_PATH)
-    isempty(ranked_impacts) && return nothing
-    labels = [r.label for r in ranked_impacts]
-    raw_values = [r.failure_given_accident for r in ranked_impacts]
-    values = [isfinite(v) ? v : 0.0 for v in raw_values]
-    xs = collect(1:length(labels))
-
-    max_val = maximum(values)
-    ymax = iszero(max_val) ? 1.0 : max_val * 1.1
-
-    bar_kwargs = (
-        xlabel = "Hydrogen accident",
-        ylabel = "P(" * string(failure_state) * "|accident)",
-        label = "",
-        color = :royalblue4,
-        grid = :y,
-        legend = false,
-        bar_width = 0.55,
-        dpi = 300,
-        size = (900, 600),
-        ylims = (0, ymax),
-        xticks = (xs, labels),
-        xtickfont = Plots.font(10, rotation = 20),
-    )
-
-    plt = bar(xs, values; bar_kwargs...)
-
-    mkpath(dirname(output_path))
-    savefig(plt, output_path)
-    return output_path
-end
-
 ranked_impacts, p_failure = rank_hydrogen_accidents(bn, HYDROGEN_ACCIDENTS, FAILURE_STATE)
 
 println("Hydrogen accident ranking via backward inference (evidence: Reactor = $(FAILURE_STATE))")
-@printf "Baseline reactor failure probability P(F): %.6e\n\n" p_failure
+println("Additional evidence: DISTANCE = $(DISTANCE_STATE), AGE = $(AGE_EVIDENCE_STATE)")
+scaled_p_failure = p_failure * FAILURE_SCALE
+@printf "Baseline reactor failure probability P(F): %.6e\n\n" scaled_p_failure
 @printf "%-10s %12s %16s %16s %16s\n" "Accident" "P(A)" "P(A|F)" "P(F|A)" "ΔP(F)"
 separator = repeat("-", 74)
 println(separator)
 for r in ranked_impacts
     failure_given_accident = isfinite(r.failure_given_accident) ? r.failure_given_accident : NaN
     uplift = isfinite(r.uplift) ? r.uplift : NaN
-    @printf "%-10s %12.6e %16.6e %16.6e %16.6e\n" r.label r.prior r.posterior failure_given_accident uplift
+    scaled_failure_given = isfinite(failure_given_accident) ? failure_given_accident * FAILURE_SCALE : NaN
+    scaled_uplift = isfinite(uplift) ? uplift * FAILURE_SCALE : NaN
+    @printf "%-10s %12.6e %16.6e %16.6e %16.6e\n" r.label r.prior r.posterior scaled_failure_given scaled_uplift
 end
 
-plot_path = plot_accident_impacts(ranked_impacts, FAILURE_STATE; output_path=PLOT_PATH)
-if plot_path === nothing
-    println("No ranking results available for plotting.")
-else
-    println("Saved ranking plot to $(plot_path)")
+function years_from_age_state(state::Symbol)
+    suffix = split(String(state), "_")[end]
+    return parse(Int, suffix)
 end
+
+function failure_probability_vs_age(bn::BayesianNetwork, failure_state::Symbol; states=AGE_STATES)
+    results = NamedTuple{(:state, :years, :probability),Tuple{Symbol,Int,Float64}}[]
+    for state in states
+        ev = distance_evidence(:AGE => state)
+        factor = infer(bn, :Reactor, ev)
+        push!(results, (
+            state = state,
+            years = years_from_age_state(state),
+            probability = float(probability_of_state(factor, :Reactor, failure_state)) * FAILURE_SCALE,
+        ))
+    end
+    sort(results; by = r -> r.years)
+end
+
+age_failure = failure_probability_vs_age(bn, FAILURE_STATE)
+
+println("\nReactor failure probability conditioned on AGE states")
+@printf "%-8s %12s\n" "AGE" "P(F|AGE)"
+println(repeat("-", 24))
+for entry in age_failure
+    @printf "%-8s %12.6e\n" String(entry.state) entry.probability
+end
+
+mkpath(PLOT_DIR)
+times = [r.years for r in age_failure]
+probs = [r.probability for r in age_failure]
+plt = plot(
+    times,
+    probs,
+    marker = :circle,
+    xlabel = "Plant age [years]",
+    ylabel = "P(Reactor failure | AGE)",
+    title = "Failure probability vs. plant age",
+    legend = false,
+)
+plot_path = joinpath(PLOT_DIR, "reactor_failure_vs_age.png")
+savefig(plt, plot_path)
+println("\nSaved failure probability plot to $(plot_path)")
