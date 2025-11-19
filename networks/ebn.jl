@@ -10,7 +10,7 @@ using DataFrames
 using JLD2
 using Dates
 
-const SIMULATIONS = 50 # number of Monte Carlo simulations
+const SIMULATIONS = 100 # number of Monte Carlo simulations
 const threshold = 1243.9
 
 const current_dir = pwd()
@@ -36,7 +36,6 @@ age_node = DiscreteNode(:AGE, cpt_age)
 """
 data = CSV.read("networks/csv/LOCA_probability.csv", DataFrame)
 rename!(data, :Column1 => :PGA)
-rename!(data, :AGE_0 => :AGE_00)
 df_long1 = stack(data, Not(:PGA), variable_name=:AGE, value_name=:Π)
 df_long2 = deepcopy(df_long1)
 df_long2[!, :Π] = 1 .- df_long2[!, :Π]
@@ -81,7 +80,6 @@ t_loop_node = ContinuousNode(:t_loop, t_loop_cpt)
 ```
 data = CSV.read("networks/csv/MSLB_probability.csv", DataFrame)
 rename!(data, :Column1 => :PGA)
-rename!(data, :AGE_0 => :AGE_00)
 df_long1 = stack(data, Not(:PGA), variable_name=:AGE, value_name=:Π)
 df_long2 = deepcopy(df_long1)
 df_long2[!, :Π] = 1 .- df_long2[!, :Π]
@@ -376,7 +374,6 @@ t_LHS_node = ContinuousNode(:t_LHS, t_LHS_cpt)
 ```
 data = CSV.read("networks/csv/ACS_probability.csv", DataFrame)
 rename!(data, :Column1 => :PGA)
-rename!(data, :AGE_0 => :AGE_00)
 df_long1 = stack(data, Not(:PGA), variable_name=:AGE, value_name=:Π)
 df_long2 = deepcopy(df_long1)
 df_long2[!, :Π] = 1 .- df_long2[!, :Π]
@@ -407,7 +404,6 @@ rt_acs_node = ContinuousNode(:rt_acs, rt_acs_cpt)
 ```
 data = CSV.read("networks/csv/EDG_probability.csv", DataFrame)
 rename!(data, :Column1 => :PGA)
-rename!(data, :AGE_0 => :AGE_00)
 df_long1 = stack(data, Not(:PGA), variable_name=:AGE, value_name=:Π)
 df_long2 = deepcopy(df_long1)
 df_long2[!, :Π] = 1 .- df_long2[!, :Π]
@@ -438,7 +434,6 @@ rt_edg_node = ContinuousNode(:rt_edg, rt_edg_cpt)
 ```
 data = CSV.read("networks/csv/PDP_probability.csv", DataFrame)
 rename!(data, :Column1 => :PGA)
-rename!(data, :AGE_0 => :AGE_00)
 df_long1 = stack(data, Not(:PGA), variable_name=:AGE, value_name=:Π)
 df_long2 = deepcopy(df_long1)
 df_long2[!, :Π] = 1 .- df_long2[!, :Π]
