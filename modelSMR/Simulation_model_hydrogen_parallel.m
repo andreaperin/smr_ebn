@@ -89,22 +89,40 @@ for i = 1:N
     end
 end
 
-% Run in parallel
+% Decide which cases need an actual simulation (rest get T_W1 fixed at 1100)
+conditionThreshold = 1200;
+simulateMask = false(1, N);
+for i = 1:N
+    simulateMask(i) = (LOCA_time(i) < conditionThreshold) || ...
+                      (MSLB_time(i) < conditionThreshold) || ...
+                      (LHS_time(i) < conditionThreshold);
+end
+
+% Run only the selected cases in parallel
 save_system(model);
-out = parsim(in, 'ShowProgress', 'on');
+out = [];
+if any(simulateMask)
+    out = parsim(in(simulateMask), 'ShowProgress', 'on');
+end
 
 % === Extract temperature results (index outputs properly) ===
-T_W1 = NaN(N, tsim); T_W2 = NaN(N, tsim); T_W3 = NaN(N, tsim); T_W4 = NaN(N, tsim);
+T_W1 = 1100 * ones(N, tsim);  % default constant for non-simulated cases
+T_W2 = NaN(N, tsim); T_W3 = NaN(N, tsim); T_W4 = NaN(N, tsim);
+outIdx = 1;
 for i = 1:N
+    if ~simulateMask(i)
+        continue
+    end
     try
-        T_W1(i,:) = reshape(max(out(i).T_W1, [], 1), [1, tsim])';
-        T_W2(i,:) = reshape(max(out(i).T_W2, [], 1), [1, tsim])';
-        T_W3(i,:) = reshape(max(out(i).T_W3, [], 1), [1, tsim])';
-        T_W4(i,:) = reshape(max(out(i).T_W4, [], 1), [1, tsim])';
+        T_W1(i,:) = reshape(max(out(outIdx).T_W1, [], 1), [1, tsim])';
+        T_W2(i,:) = reshape(max(out(outIdx).T_W2, [], 1), [1, tsim])';
+        T_W3(i,:) = reshape(max(out(outIdx).T_W3, [], 1), [1, tsim])';
+        T_W4(i,:) = reshape(max(out(outIdx).T_W4, [], 1), [1, tsim])';
     catch
         warning('Temperature extraction failed for run %d; filling with NaNs.', i);
         % leave NaNs as initialized
     end
+    outIdx = outIdx + 1;
 end
 
 toc
