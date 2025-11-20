@@ -8,7 +8,7 @@ addprocs(n_workers)
     using DataFrames
     using JLD2
 
-    const mc_sim = 10^6
+    const mc_sim = 10^3
     const threshold = 1243.9
 
     age = Parameter(50, :AGE)
@@ -63,4 +63,12 @@ addprocs(n_workers)
     sim = MonteCarlo(mc_sim)
 end
 
+using Dates
+
 @time p_f, var, samples = probability_of_failure(models, performance, inputs, sim)
+res = [p_f, var, samples]
+
+path_to_simulation = joinpath(pwd(), "simulations")
+mkpath(path_to_simulation)
+sim_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" * string(sim) * ".jld2"
+@save joinpath(path_to_simulation, sim_name) res
