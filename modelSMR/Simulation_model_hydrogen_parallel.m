@@ -58,44 +58,40 @@ extraVarList = { ...
 
 % Build SimulationInput array
 in(1,N) = Simulink.SimulationInput(model);
-for i = 1:N
-    in(i) = Simulink.SimulationInput(model);
-    in(i) = in(i).setModelParameter('StartTime', '1', 'StopTime', num2str(tsim));
-
-    % Function-argument inputs (index if vectors)
-    in(i) = in(i).setVariable('All_Outputs', All_Outputs);
-    in(i) = in(i).setVariable('LOCA1_time',    idxOrScalar(LOCA_time,    i));
-    in(i) = in(i).setVariable('ACS_1',         idxOrScalar(ACS_time,     i));
-    in(i) = in(i).setVariable('Power',         min(idxOrScalar(LOOPH2_time,i), idxOrScalar(LOOP_time,i)));
-    in(i) = in(i).setVariable('MSLB1',         min(idxOrScalar(MSLB_time, i), idxOrScalar(MSLBH2_time,i)));
-    in(i) = in(i).setVariable('ACS1_response_time', idxOrScalar(ACS_rtime, i));
-    in(i) = in(i).setVariable('EDG_1',             idxOrScalar(EDG_time,  i));
-    in(i) = in(i).setVariable('EDG1_response_time', idxOrScalar(EDG_rtime, i));
-    in(i) = in(i).setVariable('PDP11',              idxOrScalar(pdp_time,  i));
-    in(i) = in(i).setVariable('PDP11_response_time',idxOrScalar(pdp_rtime, i));
-    in(i) = in(i).setVariable('LHS',                idxOrScalar(LHS_time,  i));
-
-    % Flows with alphas (index alphas if you later make them vectors)
-    in(i) = in(i).setVariable('ACS1_flow', ACS1_flow * idxOrScalar(alpha_1,i));
-    in(i) = in(i).setVariable('ACS2_flow', ACS2_flow * idxOrScalar(alpha_2,i));
-    in(i) = in(i).setVariable('ACS3_flow', ACS3_flow * idxOrScalar(alpha_3,i));
-    in(i) = in(i).setVariable('ACS4_flow', ACS4_flow * idxOrScalar(alpha_4,i));
-
-    % Push all the "missing" variables too:
-    for k = 1:numel(extraVarList)
-        vn = extraVarList{k};
-        val = preferLocalElseBase(vn);       % get scalar or vector
-        in(i) = in(i).setVariable(vn, idxOrScalar(val, i));  % index if vector
-    end
-end
-
-% Decide which cases need an actual simulation (rest get T_W1 fixed at 1100)
 conditionThreshold = 1200;
 simulateMask = false(1, N);
 for i = 1:N
-    simulateMask(i) = (LOCA_time(i) < conditionThreshold) || ...
-                      (MSLB_time(i) < conditionThreshold) || ...
-                      (LHS_time(i) < conditionThreshold);
+    if (LOCA_time(i) < conditionThreshold) || (MSLB_time(i) < conditionThreshold) || (LHS_time(i) < conditionThreshold)
+        simulateMask(i)=1;
+        in(i) = Simulink.SimulationInput(model);
+        in(i) = in(i).setModelParameter('StartTime', '1', 'StopTime', num2str(tsim));
+    
+        % Function-argument inputs (index if vectors)
+        in(i) = in(i).setVariable('All_Outputs', All_Outputs);
+        in(i) = in(i).setVariable('LOCA1_time',    idxOrScalar(LOCA_time,    i));
+        in(i) = in(i).setVariable('ACS_1',         idxOrScalar(ACS_time,     i));
+        in(i) = in(i).setVariable('Power',         min(idxOrScalar(LOOPH2_time,i), idxOrScalar(LOOP_time,i)));
+        in(i) = in(i).setVariable('MSLB1',         min(idxOrScalar(MSLB_time, i), idxOrScalar(MSLBH2_time,i)));
+        in(i) = in(i).setVariable('ACS1_response_time', idxOrScalar(ACS_rtime, i));
+        in(i) = in(i).setVariable('EDG_1',             idxOrScalar(EDG_time,  i));
+        in(i) = in(i).setVariable('EDG1_response_time', idxOrScalar(EDG_rtime, i));
+        in(i) = in(i).setVariable('PDP11',              idxOrScalar(pdp_time,  i));
+        in(i) = in(i).setVariable('PDP11_response_time',idxOrScalar(pdp_rtime, i));
+        in(i) = in(i).setVariable('LHS',                idxOrScalar(LHS_time,  i));
+    
+        % Flows with alphas (index alphas if you later make them vectors)
+        in(i) = in(i).setVariable('ACS1_flow', ACS1_flow * idxOrScalar(alpha_1,i));
+        in(i) = in(i).setVariable('ACS2_flow', ACS2_flow * idxOrScalar(alpha_2,i));
+        in(i) = in(i).setVariable('ACS3_flow', ACS3_flow * idxOrScalar(alpha_3,i));
+        in(i) = in(i).setVariable('ACS4_flow', ACS4_flow * idxOrScalar(alpha_4,i));
+    
+        % Push all the "missing" variables too:
+        for k = 1:numel(extraVarList)
+            vn = extraVarList{k};
+            val = preferLocalElseBase(vn);       % get scalar or vector
+            in(i) = in(i).setVariable(vn, idxOrScalar(val, i));  % index if vector
+        end
+    end
 end
 
 % Run only the selected cases in parallel
