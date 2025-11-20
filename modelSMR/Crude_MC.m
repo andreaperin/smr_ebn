@@ -4,7 +4,7 @@ clc
 
 tic
 
-N=10^3;
+N=10;
 age=50;
 
 %distribution parameters
