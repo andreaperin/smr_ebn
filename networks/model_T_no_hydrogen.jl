@@ -7,6 +7,7 @@
 # end
 
 using MATLAB
+
 using DataFrames
 
 function model_temperatures(
@@ -56,19 +57,15 @@ function model_temperatures(
     return df
 end
 
+
 function model_temperatures_parallel(
     LOCA_time::Vector{Float64},
     LOOP_time::Vector{Float64},
-    LHS_time::Vector{Float64},
     MSLB_time::Vector{Float64},
-    MSLBH2_time::Vector{Float64},
-    LOOPH2_time::Vector{Float64},
     ACS_time::Vector{Float64},
     ACS_rtime::Vector{Float64},
     EDG_time::Vector{Float64},
     EDG_rtime::Vector{Float64},
-    pdp_time::Vector{Float64},
-    pdp_rtime::Vector{Float64}
 )
 
     mat"close all; clear all;"
@@ -83,16 +80,16 @@ function model_temperatures_parallel(
     T_W1, T_W2, T_W3, T_W4 = mxcall(:Simulation_model_hydrogen_parallel, 4,
         LOCA_time,
         LOOP_time,
-        LHS_time,
+        1200,
         MSLB_time,
-        MSLBH2_time,
-        LOOPH2_time,
+        1200,
+        1200,
         ACS_time,
         ACS_rtime,
         EDG_time,
         EDG_rtime,
-        pdp_time,
-        pdp_rtime,
+        1200,
+        0
     )
 
     # df = DataFrame(
@@ -108,26 +105,6 @@ function model_temperatures_parallel(
     # max_T_W4 = vec(maximum(T_W4, dims=2))
 
     return max_T_W1
-end
-
-function failure_times(pga::Float64, age::Float64)
-    mat"close all; clear all;"
-    mat"""
-    addpath('./modelSMR')
-    """
-    mat"warning('off', 'all');"
-    LOCA_time, LOOP_time, LHS_time, MSLB_time, MSLBH2_time, LOOPH2_time, ACS_time, EDG_time, pdp_time = mxcall(:times_function, 9, pga, age)
-    res = DataFrame()
-    res[:, :LOCA_time] = [LOCA_time]
-    res[:, :LOOP_time] = [LOOP_time]
-    res[:, :LHS_time] = [LHS_time]
-    res[:, :MSLB_time] = [MSLB_time]
-    res[:, :MSLBH2_time] = [MSLBH2_time]
-    res[:, :LOOPH2_time] = [LOOPH2_time]
-    res[:, :ACS_time] = [ACS_time]
-    res[:, :EDG_time] = [EDG_time]
-    res[:, :pdp_time] = [pdp_time]
-    return res
 end
 
 # a = model_temperatures(20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0, 20.0)
