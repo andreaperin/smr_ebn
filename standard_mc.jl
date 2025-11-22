@@ -8,7 +8,7 @@ addprocs(n_workers)
     using DataFrames
     using JLD2
 
-    const mc_sim = 10^3
+    const mc_sim = 10^6
     const threshold = 1243.9
 
     age = Parameter(50, :AGE)
