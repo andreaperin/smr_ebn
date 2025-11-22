@@ -1,8 +1,7 @@
 ### LOCAL
 /modelSMR/slprj
 /modelSMR/SMDFR_HTE_model.slx.autosave
-/crude_MC/*
-simulations/*
+/simulations/*
 # ignore Simulink autosave files anywhere
 *.autosave
 ### Julia

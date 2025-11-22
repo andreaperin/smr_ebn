@@ -3,11 +3,11 @@ using JLD2
 using Plots
 using Printf
 
-const MODEL_PATH = "/Users/stefanomarchetti/Library/CloudStorage/OneDrive-PolitecnicodiMilano/Python/Cursor/smr_ebn/networks/ebn_jld2/2025_11_05_21_16_MonteCarlo(50).jld2"
+const MODEL_PATH = "/Users/stefanomarchetti/Library/CloudStorage/OneDrive-PolitecnicodiMilano/Python/Cursor/smr_ebn/networks/ebn_jld2/eBN_with_hydrogen_100.jld2"
 const FAILURE_STATE = :Reactor_fail
 const AGE_STATES = Tuple(Symbol("AGE_$(i)0") for i in 0:5)
 const AGE_EVIDENCE_STATE = AGE_STATES[1]
-const DISTANCE_STATE = :Distance_500
+const DISTANCE_STATE = :Distance_250
 const PLOT_DIR = joinpath(@__DIR__, "imgs")
 const FAILURE_SCALE = 1.2e-3
 const HYDROGEN_ACCIDENTS = [
@@ -93,6 +93,21 @@ for r in ranked_impacts
     @printf "%-10s %12.6e %16.6e %16.6e %16.6e\n" r.label r.prior r.posterior scaled_failure_given scaled_uplift
 end
 
+mkpath(PLOT_DIR)
+ranking_labels = [r.label for r in ranked_impacts]
+ranking_impacts = [isfinite(r.failure_given_accident) ? r.failure_given_accident * FAILURE_SCALE : NaN for r in ranked_impacts]
+ranking_plot = bar(
+    ranking_labels,
+    ranking_impacts,
+    xlabel = "Hydrogen accident",
+    ylabel = "P(Failure | Accident)",
+    title = "Hydrogen accident ranking",
+    legend = false,
+)
+ranking_plot_path = joinpath(PLOT_DIR, "hydrogen_ranking.png")
+savefig(ranking_plot, ranking_plot_path)
+println("\nSaved hydrogen ranking plot to $(ranking_plot_path)")
+
 function years_from_age_state(state::Symbol)
     suffix = split(String(state), "_")[end]
     return parse(Int, suffix)
@@ -121,7 +136,6 @@ for entry in age_failure
     @printf "%-8s %12.6e\n" String(entry.state) entry.probability
 end
 
-mkpath(PLOT_DIR)
 times = [r.years for r in age_failure]
 probs = [r.probability for r in age_failure]
 plt = plot(
