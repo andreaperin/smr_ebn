@@ -5,7 +5,7 @@ clc
 tic
 
 N=10^6;
-age=50;
+age=0.1;
 
 %distribution parameters
 PGA_min = 0.1; %minimum value of PGA
@@ -72,6 +72,10 @@ for i=1:N
     end
 end
 
-disp("Failure probability: " + string(fail/N));
+FP = fail/N;
+
+disp("Failure probability: " + string(FP));
+
+save("Results")
 
 toc
