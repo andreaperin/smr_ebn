@@ -8,7 +8,11 @@ addprocs(n_workers)
     using DataFrames
     using JLD2
 
-    const mc_sim = 10^6
+    const initial_samples = 1_000
+    const conditional_p = 0.1
+    const level_threshold = 10
+    const mcmc_target = Uniform(-0.2, 0.2)
+    const ssinf_std_dev = 0.5
     const threshold = 1243.9
 
     age = Parameter(50, :AGE)
@@ -60,15 +64,22 @@ addprocs(n_workers)
     inputs = [age, pga, rt_acs, rt_edg, rt_pdp]
     performance = df -> threshold .- df.maxT_W1
 
-    sim = MonteCarlo(mc_sim)
+    sim1 = SubSetSimulation(initial_samples, conditional_p, level_threshold, mcmc_target)
+    sim2 = SubSetInfinity(initial_samples, conditional_p, level_threshold, ssinf_std_dev)
 end
 
 using Dates
-
-@time p_f, var, samples = probability_of_failure(models, performance, inputs, sim)
-res = [p_f, var, samples]
-
 path_to_simulation = joinpath(pwd(), "simulations")
 mkpath(path_to_simulation)
-sim_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" * string(sim) * ".jld2"
-@save joinpath(path_to_simulation, sim_name) res
+
+@show("start $(sim1)")
+@time p_f, var, samples = probability_of_failure(models, performance, inputs, sim1)
+res1 = [p_f, var, samples]
+sim_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" * string(sim1) * ".jld2"
+@save joinpath(path_to_simulation, sim_name) res1
+
+@show("start $(sim2)")
+@time p_f, var, samples = probability_of_failure(models, performance, inputs, sim2)
+res2 = [p_f, var, samples]
+sim_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" * string(sim2) * ".jld2"
+@save joinpath(path_to_simulation, sim_name) res1
