@@ -1,8 +1,3 @@
-# using Distributed
-# numProcs = 6
-# addprocs(numProcs)
-
-# @everywhere begin
 using EnhancedBayesianNetworks
 using EnhancedBayesianNetworks: evaluate!
 using CSV
@@ -254,19 +249,19 @@ LOOPH2_cpt = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}([:E
 LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_250, :LOOPH2=>:YES_LOOPH2] = 0.004
 LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_250, :LOOPH2=>:NO_LOOPH2] = 1 - 0.004
 LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_250, :LOOPH2=>:YES_LOOPH2] = 0
-LOOPH2_cpt[:EXP=>:NO_EXP,:DISTANCE=>:Distance_250, :LOOPH2=>:NO_LOOPH2] = 1
+LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_250, :LOOPH2=>:NO_LOOPH2] = 1
 LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_500, :LOOPH2=>:YES_LOOPH2] = 0.0013
 LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_500, :LOOPH2=>:NO_LOOPH2] = 1 - 0.0013
 LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_500, :LOOPH2=>:YES_LOOPH2] = 0
-LOOPH2_cpt[:EXP=>:NO_EXP,:DISTANCE=>:Distance_500, :LOOPH2=>:NO_LOOPH2] = 1
+LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_500, :LOOPH2=>:NO_LOOPH2] = 1
 LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_750, :LOOPH2=>:YES_LOOPH2] = 0.000529
 LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_750, :LOOPH2=>:NO_LOOPH2] = 1 - 0.000529
 LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_750, :LOOPH2=>:YES_LOOPH2] = 0
-LOOPH2_cpt[:EXP=>:NO_EXP,:DISTANCE=>:Distance_750, :LOOPH2=>:NO_LOOPH2] = 1
+LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_750, :LOOPH2=>:NO_LOOPH2] = 1
 LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_1000, :LOOPH2=>:YES_LOOPH2] = 0.000332
 LOOPH2_cpt[:EXP=>:YES_EXP, :DISTANCE=>:Distance_1000, :LOOPH2=>:NO_LOOPH2] = 1 - 0.000332
 LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_1000, :LOOPH2=>:YES_LOOPH2] = 0
-LOOPH2_cpt[:EXP=>:NO_EXP,:DISTANCE=>:Distance_1000, :LOOPH2=>:NO_LOOPH2] = 1
+LOOPH2_cpt[:EXP=>:NO_EXP, :DISTANCE=>:Distance_1000, :LOOPH2=>:NO_LOOPH2] = 1
 LOOPH2_node = DiscreteNode(:LOOPH2, LOOPH2_cpt)
 
 
@@ -326,7 +321,7 @@ OC_node = DiscreteNode(:OC, OC_cpt)
 
 ``` LHS node
 ```
-LHS_cpt = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}([:OC, :EXP,:DISTANCE, :LHS])
+LHS_cpt = DiscreteConditionalProbabilityTable{PreciseDiscreteProbability}([:OC, :EXP, :DISTANCE, :LHS])
 LHS_cpt[:OC=>:YES_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_250, :LHS=>:YES_LHS] = 1
 LHS_cpt[:OC=>:YES_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_250, :LHS=>:NO_LHS] = 0
 LHS_cpt[:OC=>:YES_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_500, :LHS=>:YES_LHS] = 1
@@ -344,13 +339,13 @@ LHS_cpt[:OC=>:YES_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_750, :LHS=>:NO_LHS] = 
 LHS_cpt[:OC=>:YES_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_1000, :LHS=>:YES_LHS] = 1
 LHS_cpt[:OC=>:YES_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_1000, :LHS=>:NO_LHS] = 0
 LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_250, :LHS=>:YES_LHS] = 0.0013
-LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_250, :LHS=>:NO_LHS] = 1-0.0013
+LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_250, :LHS=>:NO_LHS] = 1 - 0.0013
 LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_500, :LHS=>:YES_LHS] = 0.000227
-LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_500, :LHS=>:NO_LHS] = 1-0.000227
+LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_500, :LHS=>:NO_LHS] = 1 - 0.000227
 LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_750, :LHS=>:YES_LHS] = 0.000035
-LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_750, :LHS=>:NO_LHS] = 1-0.000035
+LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_750, :LHS=>:NO_LHS] = 1 - 0.000035
 LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_1000, :LHS=>:YES_LHS] = 0.000002
-LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_1000, :LHS=>:NO_LHS] = 1-0.000002
+LHS_cpt[:OC=>:NO_OC, :EXP=>:YES_EXP, :DISTANCE=>:Distance_1000, :LHS=>:NO_LHS] = 1 - 0.000002
 LHS_cpt[:OC=>:NO_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_250, :LHS=>:YES_LHS] = 0
 LHS_cpt[:OC=>:NO_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_250, :LHS=>:NO_LHS] = 1
 LHS_cpt[:OC=>:NO_OC, :EXP=>:NO_EXP, :DISTANCE=>:Distance_500, :LHS=>:YES_LHS] = 0
@@ -569,5 +564,3 @@ ebn_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" *
 # Print elapsed time
 seconds = (time_ns() - t0) / 1e9
 println("Elapsed time: $(round(seconds, digits=3)) s")
-
-# rmprocs(workers())
