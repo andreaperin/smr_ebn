@@ -2,13 +2,15 @@ using Distributed
 n_workers = 8
 addprocs(n_workers)
 
+total_start = time()
+
 @everywhere begin
     using UncertaintyQuantification
     using MATLAB
     using DataFrames
     using JLD2
 
-    const mc_sim = 10^6
+    const mc_sim = 10^4
     const threshold = 1243.9
 
     age = Parameter(50, :AGE)
@@ -65,10 +67,13 @@ end
 
 using Dates
 
-@time p_f, var, samples = probability_of_failure(models, performance, inputs, sim)
-res = [p_f, var, samples]
+@time p_f, variance, samples = probability_of_failure(models, performance, inputs, sim)
+res = [p_f, variance, samples]
 
 path_to_simulation = joinpath(pwd(), "simulations")
 mkpath(path_to_simulation)
 sim_name = Dates.format(now(), "yyyy_mm_dd_HH_MM") * "_" * string(sim) * ".jld2"
 @save joinpath(path_to_simulation, sim_name) res
+
+total_elapsed = time() - total_start
+println("Total run time: $(round(total_elapsed; digits = 2)) seconds")

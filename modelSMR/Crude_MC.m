@@ -64,14 +64,29 @@ end
     pdp_time, ...
     pdp_rtime);
 
-%post-processing
-fail=0;
-for i=1:N
+% post-processing: crude MC estimate + variance
+fail = 0;
+for i = 1:N
     if max(T_W1(i,:)) > 1243.9
-        fail=fail+1;
+        fail = fail + 1;
     end
 end
 
-disp("Failure probability: " + string(fail/N));
+p_hat = fail / N;                          % estimator of failure probability
+var_p_hat = p_hat * (1 - p_hat) / N;       % estimated variance
+std_p_hat = sqrt(var_p_hat);               % standard deviation (standard error)
+
+% 95% confidence interval using normal approximation
+z = 1.96;
+CI_low  = p_hat - z * std_p_hat;
+CI_high = p_hat + z * std_p_hat;
+
+disp("Failure probability (crude MC): " + string(p_hat));
+disp("Std dev of estimate: "          + string(std_p_hat));
+disp("95% CI: [" + string(CI_low) + ", " + string(CI_high) + "]");
+
+FP = p_hat;
+
+save('Crude_MC','FP','CI_low','CI_high','std_p_hat')
 
 toc

@@ -3,13 +3,14 @@ using JLD2
 using Plots
 using Printf
 
-const MODEL_PATH = "/Users/stefanomarchetti/Library/CloudStorage/OneDrive-PolitecnicodiMilano/Python/Cursor/smr_ebn/networks/ebn_jld2/eBN_with_hydrogen_100.jld2"
+const MODEL_PATH = "/Users/stefanomarchetti/Library/CloudStorage/OneDrive-PolitecnicodiMilano/Python/Cursor/smr_ebn/networks/ebn_jld2/eBN_with_hydrogen_200.jld2"
 const FAILURE_STATE = :Reactor_fail
 const AGE_STATES = Tuple(Symbol("AGE_$(i)0") for i in 0:5)
-const AGE_EVIDENCE_STATE = AGE_STATES[1]
+const AGE_EVIDENCE_STATE = AGE_STATES[6]
 const DISTANCE_STATE = :Distance_250
 const PLOT_DIR = joinpath(@__DIR__, "imgs")
-const FAILURE_SCALE = 1.2e-3
+#const FAILURE_SCALE = 1.2e-3
+const FAILURE_SCALE = 1
 const HYDROGEN_ACCIDENTS = [
     (node = :OC, state = :YES_OC, label = "OC"),
     (node = :EXP, state = :YES_EXP, label = "EXP"),

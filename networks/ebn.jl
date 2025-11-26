@@ -10,7 +10,7 @@ using DataFrames
 using JLD2
 using Dates
 
-const SIMULATIONS = 100 # number of Monte Carlo simulations
+const SIMULATIONS = 200 # number of Monte Carlo simulations
 const threshold = 1243.9
 
 const current_dir = pwd()
@@ -149,7 +149,7 @@ MSLBH2_node = DiscreteNode(:MSLBH2, MSLBH2_cpt)
 ``` MSLBH2-TIME node
 ```
 t_MSLBH2_cpt = ContinuousConditionalProbabilityTable{PreciseContinuousInput}(:MSLBH2)
-t_MSLBH2_cpt[:MSLBH2=>:YES_MSLBH2] = Uniform(1, 1200)
+t_MSLBH2_cpt[:MSLBH2=>:YES_MSLBH2] = LogNormal(3.3, 1)
 t_MSLBH2_cpt[:MSLBH2=>:NO_MSLBH2] = Normal(1200, 0)
 t_MSLBH2_node = ContinuousNode(:t_MSLBH2, t_MSLBH2_cpt)
 
